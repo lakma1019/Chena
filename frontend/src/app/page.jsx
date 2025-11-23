@@ -7,29 +7,20 @@ export default function Home() {
       <section
         className="relative bg-cover bg-center py-32 md:py-48 overflow-hidden"
         style={{
-          backgroundImage: "url('/images/background/home.png')",
+          backgroundImage: "url('/images/background/home.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        {/* Modern gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-900/40 via-green-700/30 to-emerald-900/40"></div>
-        
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-200 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        </div>
+        {/* Minimal overlay for brightness */}
+        <div className="absolute inset-0 bg-black/10"></div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-block mb-6 px-6 py-2 bg-white/20 backdrop-blur-md rounded-full border border-white/30">
-              <span className="text-white font-medium">🌱 Farm-Fresh Marketplace</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white drop-shadow-2xl leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-gray-800 drop-shadow-lg leading-tight">
               Bringing the Farm to Your Front Door
             </h1>
-            <p className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white/95 drop-shadow-lg mb-8">
+            <p className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-800 drop-shadow-lg mb-8">
               With Fresh Produce, Fair Prices, and Fast Delivery.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
