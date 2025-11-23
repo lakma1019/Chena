@@ -17,7 +17,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Our Services', href: '/our-services' },
     { name: 'About Us', href: '/about-us' },
-    { name: 'Login', href: '/login/farmer-login' }
+    { name: 'Login', href: '/login' }
   ]
 
   const isActive = (href) => {
