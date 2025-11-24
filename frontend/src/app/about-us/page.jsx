@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function AboutUs() {
   const [formData, setFormData] = useState({
@@ -26,66 +27,73 @@ export default function AboutUs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">About Chena</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Revolutionizing agriculture through technology and connecting communities
-          </p>
-        </div>
+        {/* Main Content Section with Image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mb-16">
+          {/* Left Side - Content */}
+          <div className="space-y-8">
+            {/* Why Chena Section */}
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                <span className="text-[#1e6b3e] mr-2">🌿</span> Why Chena ?
+              </h2>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                Chena is a web-based agricultural supply chain platform designed to transform Sri Lanka's farming trade.
+              </p>
 
-        {/* Mission Section */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-primary mb-4">Our Mission</h2>
-          <p className="text-gray-700 leading-relaxed">
-            At Chena, we are committed to bridging the gap between farmers and consumers while
-            empowering transport providers. Our platform enables direct connections, fair pricing,
-            and efficient logistics to create a sustainable agricultural ecosystem.
-          </p>
-        </div>
+              {/* Mission, What We Do, Why Chena, Vision */}
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <span className="text-[#1e6b3e] text-xl mr-3 mt-1">•</span>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                      <span className="text-[#1e6b3e]">Our Mission:</span> Empower farmers, ensure fair trade, and connect all players in the agriculture ecosystem.
+                    </h3>
+                  </div>
+                </div>
 
-        {/* Vision Section */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-primary mb-4">Our Vision</h2>
-          <p className="text-gray-700 leading-relaxed">
-            We envision a future where technology empowers every stakeholder in the agricultural
-            supply chain, from farm to table, creating prosperity and sustainability for all.
-          </p>
-        </div>
+                <div className="flex items-start">
+                  <span className="text-[#1e6b3e] text-xl mr-3 mt-1">•</span>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                      <span className="text-[#1e6b3e]">What We Do:</span> Provide a direct marketplace for farmers, fresh produce for buyers, and reliable transport options.
+                    </h3>
+                  </div>
+                </div>
 
-        {/* Values Section */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-primary mb-6">Our Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-start">
-              <div className="text-2xl mr-4">✓</div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Transparency</h3>
-                <p className="text-gray-600">Fair pricing and honest dealings for all parties</p>
+                <div className="flex items-start">
+                  <span className="text-[#1e6b3e] text-xl mr-3 mt-1">•</span>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                      <span className="text-[#1e6b3e]">Why Chena:</span> We eliminate middlemen, promote transparency, and help local farmers earn more.
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <span className="text-[#1e6b3e] text-xl mr-3 mt-1">•</span>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                      <span className="text-[#1e6b3e]">Our Vision:</span> Build a smarter, fairer, and more sustainable future for agriculture in Sri Lanka.
+                    </h3>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-start">
-              <div className="text-2xl mr-4">✓</div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Sustainability</h3>
-                <p className="text-gray-600">Supporting eco-friendly farming practices</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="text-2xl mr-4">✓</div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Innovation</h3>
-                <p className="text-gray-600">Leveraging technology for better outcomes</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="text-2xl mr-4">✓</div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Community</h3>
-                <p className="text-gray-600">Building strong relationships and trust</p>
-              </div>
+          </div>
+
+          {/* Right Side - Chef Image */}
+          <div className="flex justify-center items-start lg:justify-end">
+            <div className="relative w-full max-w-md">
+              <Image
+                src="/images/about us/chef.png"
+                alt="Chef with fresh vegetables"
+                width={500}
+                height={500}
+                className="rounded-lg shadow-lg w-full h-auto"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -101,7 +109,7 @@ export default function AboutUs() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-white rounded-lg shadow-md p-8 border border-gray-200">
               <h3 className="text-2xl font-semibold text-gray-800 mb-6">Send us a Message</h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -115,7 +123,7 @@ export default function AboutUs() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e6b3e] focus:border-transparent"
                     placeholder="John Doe"
                   />
                 </div>
@@ -131,7 +139,7 @@ export default function AboutUs() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e6b3e] focus:border-transparent"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -147,7 +155,7 @@ export default function AboutUs() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e6b3e] focus:border-transparent"
                     placeholder="How can we help?"
                   />
                 </div>
@@ -163,14 +171,14 @@ export default function AboutUs() {
                     onChange={handleChange}
                     required
                     rows="5"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e6b3e] focus:border-transparent resize-none"
                     placeholder="Tell us more about your inquiry..."
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-primary text-white py-3 px-6 rounded-md font-semibold hover:bg-green-600 transition-colors duration-200"
+                  className="w-full bg-[#1e6b3e] text-white py-3 px-6 rounded-md font-semibold hover:bg-[#165a32] transition-colors duration-200"
                 >
                   Send Message
                 </button>
@@ -179,7 +187,7 @@ export default function AboutUs() {
 
             {/* Contact Information */}
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow-md p-8">
+              <div className="bg-white rounded-lg shadow-md p-8 border border-gray-200">
                 <h3 className="text-2xl font-semibold text-gray-800 mb-6">Contact Information</h3>
                 <div className="space-y-4">
                   <div className="flex items-start">
@@ -218,14 +226,14 @@ export default function AboutUs() {
                 </div>
               </div>
 
-              <div className="bg-primary text-white rounded-lg shadow-md p-8">
+              <div className="bg-[#1e6b3e] text-white rounded-lg shadow-md p-8">
                 <h4 className="text-xl font-semibold mb-4">Need Immediate Help?</h4>
                 <p className="mb-4">
                   For urgent matters, please call our 24/7 helpline or check our FAQ section for quick answers.
                 </p>
                 <a
                   href="/faq"
-                  className="inline-block bg-white text-primary px-6 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors"
+                  className="inline-block bg-white text-[#1e6b3e] px-6 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors"
                 >
                   View FAQ
                 </a>
