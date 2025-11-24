@@ -20,7 +20,7 @@ export default function LoginPage() {
       id: 'customer',
       title: 'Login as a customer.',
       description: 'Then you can purchase products which you want as fresh without going to the market.',
-      image: '/images/login/customer1.png',
+      image: '/images/login/login separatly/customer2.jpg',
       href: '/login/customer-login',
       imagePosition: 'right'
     },
@@ -28,7 +28,7 @@ export default function LoginPage() {
       id: 'transport',
       title: 'Login as a transport provider.',
       description: 'Then you can add your price per 1km to take hire for orders.',
-      image: '/images/login/tp1.png',
+      image: '/images/login/login separatly/tp2.jpg',
       href: '/login/transport-login',
       imagePosition: 'left'
     }
