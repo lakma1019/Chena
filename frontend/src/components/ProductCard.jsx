@@ -19,8 +19,47 @@ export default function ProductCard({ product }) {
   }
 
   const handleAddToCart = () => {
-    // Redirect to customer login page when add to cart is clicked
-    router.push('/login/customer-login')
+    // Check if customer is logged in
+    const isLoggedIn = localStorage.getItem('customerLoggedIn')
+
+    if (!isLoggedIn) {
+      // Redirect to customer login page if not logged in
+      router.push('/login/customer-login')
+      return
+    }
+
+    // Get existing cart from localStorage
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+
+    // Check if product already exists in cart
+    const existingItemIndex = cart.findIndex(item => item.id === product.id)
+
+    if (existingItemIndex > -1) {
+      // Update quantity if product exists
+      cart[existingItemIndex].quantity += quantity
+    } else {
+      // Add new product to cart
+      cart.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        weight: product.weight,
+        image: product.image,
+        quantity: quantity
+      })
+    }
+
+    // Save updated cart to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart))
+
+    // Dispatch event to update cart count
+    window.dispatchEvent(new Event('cartUpdated'))
+
+    // Show success message
+    alert(`${product.name} added to cart!`)
+
+    // Reset quantity to 1
+    setQuantity(1)
   }
 
   return (
