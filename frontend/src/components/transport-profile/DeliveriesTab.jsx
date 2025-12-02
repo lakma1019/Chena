@@ -53,14 +53,6 @@ export default function DeliveriesTab() {
     }
   ])
 
-  const [newDelivery, setNewDelivery] = useState({
-    orderId: '',
-    pickupAddress: '',
-    deliveryAddress: '',
-    deliveryDate: '',
-    notes: ''
-  })
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'assigned':
@@ -78,26 +70,6 @@ export default function DeliveriesTab() {
     if (activeSubTab === 'all') return true
     return delivery.status === activeSubTab
   })
-
-  const handleInputChange = (e) => {
-    setNewDelivery({
-      ...newDelivery,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handleAddDelivery = (e) => {
-    e.preventDefault()
-    // TODO: Implement add delivery logic
-    alert('Delivery details added successfully!')
-    setNewDelivery({
-      orderId: '',
-      pickupAddress: '',
-      deliveryAddress: '',
-      deliveryDate: '',
-      notes: ''
-    })
-  }
 
   const handleUpdateStatus = (deliveryId, newStatus) => {
     setDeliveries(deliveries.map(delivery =>
@@ -147,107 +119,12 @@ export default function DeliveriesTab() {
           >
             ✅ Completed ({deliveries.filter(d => d.status === 'completed').length})
           </button>
-          <button
-            onClick={() => setActiveSubTab('add')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              activeSubTab === 'add'
-                ? 'bg-yellow-600 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            ➕ Add Delivery
-          </button>
         </div>
       </div>
 
-      {/* Add Delivery Form */}
-      {activeSubTab === 'add' && (
-        <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b-2 border-yellow-600 pb-3">
-            Add Delivery Details
-          </h3>
-          <form onSubmit={handleAddDelivery} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Order ID</label>
-                <input
-                  type="text"
-                  name="orderId"
-                  value={newDelivery.orderId}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none"
-                  placeholder="e.g., ORD001"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Date</label>
-                <input
-                  type="date"
-                  name="deliveryDate"
-                  value={newDelivery.deliveryDate}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Pickup Address</label>
-                <input
-                  type="text"
-                  name="pickupAddress"
-                  value={newDelivery.pickupAddress}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none"
-                  placeholder="Farm location"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Address</label>
-                <input
-                  type="text"
-                  name="deliveryAddress"
-                  value={newDelivery.deliveryAddress}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none"
-                  placeholder="Customer address"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
-                <textarea
-                  name="notes"
-                  value={newDelivery.notes}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none"
-                  placeholder="Additional delivery instructions..."
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="px-8 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
-              >
-                Add Delivery Details
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
       {/* Deliveries List */}
-      {activeSubTab !== 'add' && (
-        <div className="space-y-4">
-          {filteredDeliveries.length === 0 ? (
+      <div className="space-y-4">
+        {filteredDeliveries.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-xl">
               <p className="text-gray-500 text-lg">No deliveries found</p>
             </div>
@@ -324,8 +201,7 @@ export default function DeliveriesTab() {
               </div>
             ))
           )}
-        </div>
-      )}
+      </div>
     </div>
   )
 }
