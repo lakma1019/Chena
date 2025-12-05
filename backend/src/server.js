@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { db } from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Chena Backend is Running 🚜");
 });
+
+// API Routes
+app.use("/api/auth", authRoutes);
 
 // Sample: Get all farmers
 app.get("/farmers", async (req, res) => {

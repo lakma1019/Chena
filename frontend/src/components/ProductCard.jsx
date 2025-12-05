@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { tokenManager } from '@/services/api'
 
 export default function ProductCard({ product }) {
   const [quantity, setQuantity] = useState(1)
@@ -19,10 +20,11 @@ export default function ProductCard({ product }) {
   }
 
   const handleAddToCart = () => {
-    // Check if customer is logged in
-    const isLoggedIn = localStorage.getItem('customerLoggedIn')
+    // Check if customer is logged in using JWT token
+    const accessToken = tokenManager.getAccessToken()
+    const userType = localStorage.getItem('userType')
 
-    if (!isLoggedIn) {
+    if (!accessToken || userType !== 'customer') {
       // Redirect to customer login page if not logged in
       router.push('/login/customer-login')
       return

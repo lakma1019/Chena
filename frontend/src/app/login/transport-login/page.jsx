@@ -2,31 +2,52 @@
 
 import { useRouter } from 'next/navigation'
 import SignIn from '@/components/SignIn'
+import { authAPI } from '@/services/api'
 
 export default function TransportLogin() {
   const router = useRouter()
 
-  const handleSubmit = (formData) => {
-    // Temporary hardcoded credentials (will be replaced with backend authentication)
-    const validEmail = 'kamal@transport.com'
-    const validPassword = 'Kamal@123'
+  const handleSubmit = async (formData) => {
+    try {
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+        userType: 'transport',
+      })
 
-    if (formData.email === validEmail && formData.password === validPassword) {
-      // Store login status in localStorage (temporary solution)
-      localStorage.setItem('transportLoggedIn', 'true')
-      localStorage.setItem('transportEmail', formData.email)
+      if (response.success) {
+        // JWT tokens are automatically stored by authAPI.login
+        // Store user data for quick access (optional)
+        localStorage.setItem('userData', JSON.stringify(response.data))
+        localStorage.setItem('userType', 'transport')
 
-      // Redirect to transport dashboard
-      router.push('/transport-dashboard')
-    } else {
-      alert('Invalid credentials! Please use:\nEmail: kamal@transport.com\nPassword: Kamal@123')
+        // Redirect to transport dashboard
+        router.push('/transport-dashboard')
+      }
+    } catch (error) {
+      alert(error.message || 'Invalid email or password. Please try again.')
     }
   }
 
-  const handleSignUp = (signUpData) => {
-    // TODO: Implement transport provider sign up logic
-    console.log('Transport sign up:', signUpData)
-    alert('Sign up functionality will be implemented with backend integration')
+  const handleSignUp = async (signUpData) => {
+    try {
+      const response = await authAPI.signup({
+        email: signUpData.email,
+        password: signUpData.password,
+        userType: 'transport',
+        fullName: signUpData.fullName,
+        phone: signUpData.phone,
+        nic: signUpData.nic,
+        address: signUpData.address,
+      })
+
+      if (response.success) {
+        alert('Registration successful! Please sign in with your credentials.')
+        window.location.reload()
+      }
+    } catch (error) {
+      alert(error.message || 'Registration failed. Please try again.')
+    }
   }
 
   return (
@@ -35,6 +56,7 @@ export default function TransportLogin() {
       imageSrc="/images/login/login separatly/tp2.jpg"
       imageAlt="Transport provider with vehicle"
       showSignUp={true}
+      userType="transport"
       onSubmit={handleSubmit}
       onSignUp={handleSignUp}
     />

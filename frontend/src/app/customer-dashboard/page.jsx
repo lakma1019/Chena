@@ -6,19 +6,44 @@ import ProfileTab from '@/components/customer-profile/ProfileTab'
 import ViewProductsTab from '@/components/customer-profile/ViewProductsTab'
 import CartTab from '@/components/customer-profile/CartTab'
 import OrdersTab from '@/components/customer-profile/OrdersTab'
+import { authAPI, tokenManager } from '@/services/api'
 
 export default function CustomerDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [cartItemCount, setCartItemCount] = useState(0)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in
+  // Check if user is logged in and fetch user data
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('customerLoggedIn')
-    if (!isLoggedIn) {
-      router.push('/login/customer-login')
+    const checkAuth = async () => {
+      const accessToken = tokenManager.getAccessToken()
+      const userType = localStorage.getItem('userType')
+
+      if (!accessToken || userType !== 'customer') {
+        router.push('/login/customer-login')
+        return
+      }
+
+      try {
+        // Fetch current user data from backend using JWT token
+        const response = await authAPI.getCurrentUser()
+        if (response.success) {
+          setUserData(response.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+        // Token might be invalid, redirect to login
+        tokenManager.clearTokens()
+        router.push('/login/customer-login')
+      } finally {
+        setLoading(false)
+      }
     }
+
+    checkAuth()
   }, [router])
 
   // Update cart count
@@ -30,16 +55,26 @@ export default function CustomerDashboard() {
     }
 
     updateCartCount()
-    
+
     // Listen for cart updates
     window.addEventListener('cartUpdated', updateCartCount)
     return () => window.removeEventListener('cartUpdated', updateCartCount)
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('customerLoggedIn')
-    localStorage.removeItem('customerEmail')
+    authAPI.logout()
     router.push('/login/customer-login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   const menuItems = [
@@ -127,10 +162,10 @@ export default function CustomerDashboard() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Logged in as</p>
-                <p className="font-semibold text-gray-800">{localStorage.getItem('customerEmail')}</p>
+                <p className="font-semibold text-gray-800">{userData?.email || 'Loading...'}</p>
               </div>
               <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {localStorage.getItem('customerEmail')?.charAt(0).toUpperCase() || 'C'}
+                {userData?.fullName?.charAt(0).toUpperCase() || 'U'}
               </div>
             </div>
           </div>
