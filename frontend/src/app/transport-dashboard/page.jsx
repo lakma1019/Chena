@@ -4,24 +4,59 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ProfileTab from '@/components/transport-profile/ProfileTab'
 import DeliveriesTab from '@/components/transport-profile/DeliveriesTab'
+import { authAPI, tokenManager } from '@/services/api'
 
 export default function TransportDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in
+  // Check if user is logged in and fetch user data
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('transportLoggedIn')
-    if (!isLoggedIn) {
-      router.push('/login/transport-login')
+    const checkAuth = async () => {
+      const accessToken = tokenManager.getAccessToken()
+      const userType = localStorage.getItem('userType')
+
+      if (!accessToken || userType !== 'transport') {
+        router.push('/login/transport-login')
+        return
+      }
+
+      try {
+        // Fetch current user data from backend using JWT token
+        const response = await authAPI.getCurrentUser()
+        if (response.success) {
+          setUserData(response.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+        // Token might be invalid, redirect to login
+        tokenManager.clearTokens()
+        router.push('/login/transport-login')
+      } finally {
+        setLoading(false)
+      }
     }
+
+    checkAuth()
   }, [router])
 
   const handleLogout = () => {
-    localStorage.removeItem('transportLoggedIn')
-    localStorage.removeItem('transportEmail')
+    authAPI.logout()
     router.push('/login/transport-login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   const menuItems = [
@@ -102,10 +137,10 @@ export default function TransportDashboard() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Logged in as</p>
-                <p className="font-semibold text-gray-800">{localStorage.getItem('transportEmail')}</p>
+                <p className="font-semibold text-gray-800">{userData?.email || 'Loading...'}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {localStorage.getItem('transportEmail')?.charAt(0).toUpperCase() || 'T'}
+                {userData?.fullName?.charAt(0).toUpperCase() || 'U'}
               </div>
             </div>
           </div>
