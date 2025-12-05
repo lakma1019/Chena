@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function SignIn({
   title = "Sign In as a Farmer",
   imageSrc = "/images/login/farmer1.png",
   imageAlt = "Login Image",
   showSignUp = true,
+  userType = "farmer",
   onSubmit,
   onSignUp
 }) {
@@ -128,7 +130,9 @@ export default function SignIn({
                     <input type="checkbox" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                     <span className="ml-2 text-sm text-gray-600">Remember me</span>
                   </label>
-                  <a href="#" className="text-sm text-blue-600 hover:underline">Forgot Password?</a>
+                  <Link href={`/login/${userType}-login/reset-password`} className="text-sm text-blue-600 hover:underline">
+                    Forgot Password?
+                  </Link>
                 </div>
 
                 <button type="submit" className="w-full bg-gray-500 hover:bg-gray-600 text-white py-2.5 rounded-md font-semibold transition-colors shadow-md">

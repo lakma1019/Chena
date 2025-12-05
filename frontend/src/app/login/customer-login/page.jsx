@@ -2,31 +2,52 @@
 
 import { useRouter } from 'next/navigation'
 import SignIn from '@/components/SignIn'
+import { authAPI } from '@/services/api'
 
 export default function CustomerLogin() {
   const router = useRouter()
 
-  const handleSubmit = (formData) => {
-    // Temporary hardcoded credentials (will be replaced with backend authentication)
-    const validEmail = 'rasini@gmail.com'
-    const validPassword = 'Rasini@123'
+  const handleSubmit = async (formData) => {
+    try {
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+        userType: 'customer',
+      })
 
-    if (formData.email === validEmail && formData.password === validPassword) {
-      // Store login status in localStorage (temporary solution)
-      localStorage.setItem('customerLoggedIn', 'true')
-      localStorage.setItem('customerEmail', formData.email)
+      if (response.success) {
+        // JWT tokens are automatically stored by authAPI.login
+        // Store user data for quick access (optional)
+        localStorage.setItem('userData', JSON.stringify(response.data))
+        localStorage.setItem('userType', 'customer')
 
-      // Redirect to customer dashboard
-      router.push('/customer-dashboard')
-    } else {
-      alert('Invalid credentials! Please use:\nEmail: rasini@gmail.com\nPassword: Rasini@123')
+        // Redirect to customer dashboard
+        router.push('/customer-dashboard')
+      }
+    } catch (error) {
+      alert(error.message || 'Invalid email or password. Please try again.')
     }
   }
 
-  const handleSignUp = (signUpData) => {
-    // TODO: Implement customer sign up logic
-    console.log('Customer sign up:', signUpData)
-    alert('Sign up functionality will be implemented with backend integration')
+  const handleSignUp = async (signUpData) => {
+    try {
+      const response = await authAPI.signup({
+        email: signUpData.email,
+        password: signUpData.password,
+        userType: 'customer',
+        fullName: signUpData.fullName,
+        phone: signUpData.phone,
+        nic: signUpData.nic,
+        address: signUpData.address,
+      })
+
+      if (response.success) {
+        alert('Registration successful! Please sign in with your credentials.')
+        window.location.reload()
+      }
+    } catch (error) {
+      alert(error.message || 'Registration failed. Please try again.')
+    }
   }
 
   return (
@@ -35,6 +56,7 @@ export default function CustomerLogin() {
       imageSrc="/images/login/login separatly/customer2.jpg"
       imageAlt="Customer shopping"
       showSignUp={true}
+      userType="customer"
       onSubmit={handleSubmit}
       onSignUp={handleSignUp}
     />

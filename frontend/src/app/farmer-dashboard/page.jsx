@@ -6,24 +6,59 @@ import ProfileTab from '@/components/farmer-profile/ProfileTab'
 import ProductsTab from '@/components/farmer-profile/ProductsTab'
 import OrdersTab from '@/components/farmer-profile/OrdersTab'
 import ReportsTab from '@/components/farmer-profile/ReportsTab'
+import { authAPI, tokenManager } from '@/services/api'
 
 export default function FarmerDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('profile')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in
+  // Check if user is logged in and fetch user data
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('farmerLoggedIn')
-    if (!isLoggedIn) {
-      router.push('/login/farmer-login')
+    const checkAuth = async () => {
+      const accessToken = tokenManager.getAccessToken()
+      const userType = localStorage.getItem('userType')
+
+      if (!accessToken || userType !== 'farmer') {
+        router.push('/login/farmer-login')
+        return
+      }
+
+      try {
+        // Fetch current user data from backend using JWT token
+        const response = await authAPI.getCurrentUser()
+        if (response.success) {
+          setUserData(response.data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+        // Token might be invalid, redirect to login
+        tokenManager.clearTokens()
+        router.push('/login/farmer-login')
+      } finally {
+        setLoading(false)
+      }
     }
+
+    checkAuth()
   }, [router])
 
   const handleLogout = () => {
-    localStorage.removeItem('farmerLoggedIn')
-    localStorage.removeItem('farmerEmail')
+    authAPI.logout()
     router.push('/login/farmer-login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   const menuItems = [
@@ -106,10 +141,10 @@ export default function FarmerDashboard() {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Logged in as</p>
-                <p className="font-semibold text-gray-800">{localStorage.getItem('farmerEmail')}</p>
+                <p className="font-semibold text-gray-800">{userData?.email || 'Loading...'}</p>
               </div>
               <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                S
+                {userData?.fullName?.charAt(0).toUpperCase() || 'U'}
               </div>
             </div>
           </div>
