@@ -50,6 +50,17 @@ export default function FarmerDashboard() {
     router.push('/login/farmer-login')
   }
 
+  const handleProfileUpdate = async () => {
+    try {
+      const response = await authAPI.getCurrentUser()
+      if (response.success) {
+        setUserData(response.data)
+      }
+    } catch (error) {
+      console.error('Failed to reload user data:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -152,7 +163,7 @@ export default function FarmerDashboard() {
 
         {/* Tab Content */}
         <div className="p-8">
-          {activeTab === 'profile' && <ProfileTab />}
+          {activeTab === 'profile' && <ProfileTab userData={userData} onProfileUpdate={handleProfileUpdate} />}
           {activeTab === 'products' && <ProductsTab />}
           {activeTab === 'orders' && <OrdersTab />}
           {activeTab === 'reports' && <ReportsTab />}

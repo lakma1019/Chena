@@ -196,9 +196,100 @@ export const authAPI = {
     return response;
   },
 
+  // Update user profile
+  updateProfile: async (profileData) => {
+    return apiRequest('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
+
   // Logout user
   logout: () => {
     tokenManager.clearTokens();
+  },
+};
+
+// ============================================
+// Product API
+// ============================================
+export const productAPI = {
+  // Get all products with minimum prices (for home page)
+  getAllProducts: async () => {
+    return apiRequest('/api/products', {
+      method: 'GET',
+    });
+  },
+
+  // Get product catalog
+  getProductCatalog: async () => {
+    return apiRequest('/api/products/catalog', {
+      method: 'GET',
+    });
+  },
+
+  // Get product details with all farmers selling it
+  getProductDetails: async (catalogId) => {
+    return apiRequest(`/api/products/${catalogId}/details`, {
+      method: 'GET',
+    });
+  },
+
+  // Get logged-in farmer's products
+  getFarmerProducts: async () => {
+    return apiRequest('/api/products/farmer/my-products', {
+      method: 'GET',
+    });
+  },
+
+  // Add product to farmer's inventory
+  addFarmerProduct: async (productData) => {
+    return apiRequest('/api/products/farmer', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  },
+
+  // Update farmer's product
+  updateFarmerProduct: async (farmerProductId, productData) => {
+    return apiRequest(`/api/products/farmer/${farmerProductId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  },
+
+  // Delete farmer's product
+  deleteFarmerProduct: async (farmerProductId) => {
+    return apiRequest(`/api/products/farmer/${farmerProductId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// ============================================
+// Order API
+// ============================================
+export const orderAPI = {
+  // Create new order
+  createOrder: async (orderData) => {
+    return apiRequest('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+  },
+
+  // Get all orders for logged-in customer
+  getCustomerOrders: async () => {
+    return apiRequest('/api/orders', {
+      method: 'GET',
+    });
+  },
+
+  // Get specific order details
+  getOrderDetails: async (orderId) => {
+    return apiRequest(`/api/orders/${orderId}`, {
+      method: 'GET',
+    });
   },
 };
 

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import ResetPassword from '@/components/ResetPassword'
 import { authAPI } from '@/services/api'
+import { showAlert } from '@/utils/notifications'
 
 export default function FarmerResetPassword() {
   const router = useRouter()
@@ -17,11 +18,11 @@ export default function FarmerResetPassword() {
       })
 
       if (response.success) {
-        alert('Password reset successfully! You can now login with your new password.')
+        await showAlert('Password reset successfully! You can now login with your new password.', 'success')
         router.push('/login/farmer-login')
       }
     } catch (error) {
-      alert(error.message || 'Failed to reset password. Please check your email and NIC.')
+      await showAlert(error.message || 'Failed to reset password. Please check your email and NIC.', 'error')
     }
   }
 

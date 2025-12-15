@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import SignIn from '@/components/SignIn'
 import { authAPI } from '@/services/api'
+import { showAlert } from '@/utils/notifications'
 
 export default function TransportLogin() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function TransportLogin() {
         router.push('/transport-dashboard')
       }
     } catch (error) {
-      alert(error.message || 'Invalid email or password. Please try again.')
+      await showAlert(error.message || 'Invalid email or password. Please try again.', 'error')
     }
   }
 
@@ -42,11 +43,11 @@ export default function TransportLogin() {
       })
 
       if (response.success) {
-        alert('Registration successful! Please sign in with your credentials.')
+        await showAlert('Registration successful! Please sign in with your credentials.', 'success')
         window.location.reload()
       }
     } catch (error) {
-      alert(error.message || 'Registration failed. Please try again.')
+      await showAlert(error.message || 'Registration failed. Please try again.', 'error')
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { showAlert } from '@/utils/notifications'
 import Link from 'next/link'
 
 export default function ResetPassword({ title, imageSrc, imageAlt, userType, onSubmit }) {
@@ -23,18 +24,18 @@ export default function ResetPassword({ title, imageSrc, imageAlt, userType, onS
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // Validate passwords match
     if (formData.newPassword !== formData.confirmPassword) {
-      alert('Passwords do not match!')
+      await showAlert('Passwords do not match!', 'error')
       return
     }
 
     // Validate password strength
     if (formData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters long')
+      await showAlert('Password must be at least 6 characters long', 'error')
       return
     }
 

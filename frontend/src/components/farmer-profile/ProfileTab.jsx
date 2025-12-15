@@ -1,34 +1,110 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { sriLankanBanks, farmTypes } from '@/data/sriLankanBanks'
+import { showAlert } from '@/utils/notifications'
+import { authAPI } from '@/services/api'
 
-export default function ProfileTab() {
+export default function ProfileTab({ userData, onProfileUpdate }) {
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState({
-    fullName: 'Sunil Perera',
-    email: 'sunil@gmail.com',
-    phone: '+94 77 123 4567',
-    nic: '197512345678',
-    address: 'No. 123, Main Street, Anuradhapura',
-    farmName: 'Sunil Organic Farm',
-    farmSize: '5 Acres',
-    farmType: 'Organic Vegetables',
-    bankAccount: '1234567890',
-    bankName: 'Bank of Ceylon',
-    branch: 'Anuradhapura'
+    fullName: '',
+    email: '',
+    phone: '',
+    nic: '',
+    address: '',
+    farmName: '',
+    farmSize: '',
+    farmType: '',
+    bankAccount: '',
+    bankName: '',
+    branch: ''
   })
 
   const [editData, setEditData] = useState({ ...profileData })
+  const [selectedBankBranches, setSelectedBankBranches] = useState([])
+
+  // Update profile data when userData prop changes
+  useEffect(() => {
+    if (userData) {
+      const updatedData = {
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        nic: userData.nic || '',
+        address: userData.address || '',
+        farmName: userData.farm_name || '',
+        farmSize: userData.farm_size || '',
+        farmType: userData.farm_type || '',
+        bankAccount: userData.bank_account || '',
+        bankName: userData.bank_name || '',
+        branch: userData.branch || ''
+      }
+      setProfileData(updatedData)
+      setEditData(updatedData)
+    }
+  }, [userData])
 
   const handleEdit = () => {
     setIsEditing(true)
     setEditData({ ...profileData })
+
+    // Initialize bank branches if bank is already selected
+    if (profileData.bankName) {
+      const selectedBank = sriLankanBanks.find(bank => bank.name === profileData.bankName)
+      setSelectedBankBranches(selectedBank ? selectedBank.branches : [])
+    }
   }
 
-  const handleSave = () => {
-    setProfileData({ ...editData })
-    setIsEditing(false)
-    alert('Profile updated successfully!')
+  const handleSave = async () => {
+    try {
+      console.log('Sending profile update:', {
+        fullName: editData.fullName,
+        phone: editData.phone,
+        address: editData.address,
+        farmName: editData.farmName,
+        farmSize: editData.farmSize,
+        farmType: editData.farmType,
+        bankAccount: editData.bankAccount,
+        bankName: editData.bankName,
+        branch: editData.branch,
+      });
+
+      // Call API to update profile
+      const response = await authAPI.updateProfile({
+        fullName: editData.fullName,
+        phone: editData.phone,
+        address: editData.address,
+        farmName: editData.farmName,
+        farmSize: editData.farmSize,
+        farmType: editData.farmType,
+        bankAccount: editData.bankAccount,
+        bankName: editData.bankName,
+        branch: editData.branch,
+      })
+
+      console.log('Profile update response:', response);
+
+      if (response.success) {
+        // Update local state
+        setProfileData({ ...editData })
+        setIsEditing(false)
+
+        // Trigger parent component to reload user data
+        if (onProfileUpdate) {
+          onProfileUpdate()
+        }
+
+        await showAlert('Profile updated successfully!', 'success')
+      } else {
+        // Show error from response
+        await showAlert(response.message || 'Failed to update profile. Please try again.', 'error')
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+      console.error('Error details:', error.response || error);
+      await showAlert(error.message || 'Failed to update profile. Please try again.', 'error')
+    }
   }
 
   const handleCancel = () => {
@@ -42,6 +118,25 @@ export default function ProfileTab() {
       ...editData,
       [name]: value
     })
+
+    // Update branches when bank is selected
+    if (name === 'bankName') {
+      const selectedBank = sriLankanBanks.find(bank => bank.name === value)
+      setSelectedBankBranches(selectedBank ? selectedBank.branches : [])
+      setEditData(prev => ({ ...prev, branch: '' })) // Reset branch when bank changes
+    }
+  }
+
+  // Show loading state if no user data
+  if (!userData || !profileData.fullName) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -50,11 +145,11 @@ export default function ProfileTab() {
       <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
         <div className="flex items-center space-x-6">
           <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
-            {profileData.fullName.charAt(0)}
+            {profileData.fullName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-gray-800">{profileData.fullName}</h2>
-            <p className="text-gray-600 text-lg mt-1">{profileData.farmName}</p>
+            <p className="text-gray-600 text-lg mt-1">{profileData.farmName || 'No farm name'}</p>
             <div className="flex space-x-4 mt-3">
               <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
                 ✓ Verified Farmer
@@ -197,13 +292,17 @@ export default function ProfileTab() {
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Farm Type</label>
             {isEditing ? (
-              <input
-                type="text"
+              <select
                 name="farmType"
                 value={editData.farmType}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-              />
+              >
+                <option value="">Select farm type</option>
+                {farmTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.farmType}</p>
             )}
@@ -220,13 +319,17 @@ export default function ProfileTab() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Bank Name</label>
             {isEditing ? (
-              <input
-                type="text"
+              <select
                 name="bankName"
                 value={editData.bankName}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-              />
+              >
+                <option value="">Select bank</option>
+                {sriLankanBanks.map(bank => (
+                  <option key={bank.name} value={bank.name}>{bank.name}</option>
+                ))}
+              </select>
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.bankName}</p>
             )}
@@ -235,13 +338,18 @@ export default function ProfileTab() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Branch</label>
             {isEditing ? (
-              <input
-                type="text"
+              <select
                 name="branch"
                 value={editData.branch}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-              />
+                disabled={!editData.bankName}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none disabled:bg-gray-200 disabled:cursor-not-allowed"
+              >
+                <option value="">Select branch</option>
+                {selectedBankBranches.map(branch => (
+                  <option key={branch} value={branch}>{branch}</option>
+                ))}
+              </select>
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.branch}</p>
             )}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Notification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .success-btn {
+            background: #10b981;
+            color: white;
+        }
+        .error-btn {
+            background: #ef4444;
+            color: white;
+        }
+        .warning-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        .info-btn {
+            background: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎯 Centered Notification Test</h1>
+        <p>Click the buttons below to see the centered notifications at the top of the page!</p>
+        
+        <div class="button-group">
+            <button class="success-btn" onclick="showNotification('Profile updated successfully!', 'success')">
+                ✅ Show Success Message
+            </button>
+            <button class="error-btn" onclick="showNotification('An error occurred. Please try again.', 'error')">
+                ❌ Show Error Message
+            </button>
+            <button class="warning-btn" onclick="showNotification('Warning: This action cannot be undone.', 'warning')">
+                ⚠️ Show Warning Message
+            </button>
+            <button class="info-btn" onclick="showNotification('This is an informational message.', 'info')">
+                ℹ️ Show Info Message
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Notification system
+        function createNotificationContainer() {
+            let container = document.getElementById('notification-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'notification-container';
+                container.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 9999;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    max-width: 400px;
+                `;
+                document.body.appendChild(container);
+            }
+            return container;
+        }
+
+        function getColorForType(type) {
+            switch (type) {
+                case 'success': return '#10b981';
+                case 'error': return '#ef4444';
+                case 'warning': return '#f59e0b';
+                default: return '#3b82f6';
+            }
+        }
+
+        function getIconForType(type) {
+            switch (type) {
+                case 'success': return '✅';
+                case 'error': return '❌';
+                case 'warning': return '⚠️';
+                default: return 'ℹ️';
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const container = createNotificationContainer();
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                border-left: 4px solid ${getColorForType(type)};
+                animation: slideIn 0.3s ease-out;
+                min-width: 300px;
+            `;
+            
+            const icon = getIconForType(type);
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: start; gap: 12px;">
+                    <div style="font-size: 24px; flex-shrink: 0;">${icon}</div>
+                    <div style="flex: 1;">
+                        <p style="margin: 0; color: #1f2937; font-size: 15px; line-height: 1.5;">${message}</p>
+                        <button class="ok-btn" style="
+                            margin-top: 12px;
+                            background: ${getColorForType(type)};
+                            color: white;
+                            border: none;
+                            padding: 8px 24px;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-size: 14px;
+                            transition: all 0.2s;
+                        ">OK</button>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            const okBtn = notification.querySelector('.ok-btn');
+            okBtn.addEventListener('click', () => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            });
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+

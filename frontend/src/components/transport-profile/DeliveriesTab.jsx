@@ -1,57 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function DeliveriesTab() {
   const [activeSubTab, setActiveSubTab] = useState('assigned')
-  const [deliveries, setDeliveries] = useState([
-    {
-      id: 'DEL001',
-      orderId: 'ORD001',
-      customerName: 'Rasini Perera',
-      customerPhone: '+94 77 234 5678',
-      pickupAddress: 'Farm - Nuwara Eliya',
-      deliveryAddress: 'No. 45, Main Street, Colombo 07',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 2, weight: '500g' },
-        { name: 'Carrot', quantity: 1, weight: '500g' }
-      ],
-      status: 'assigned',
-      assignedDate: '2024-11-30',
-      deliveryFee: 500.00
-    },
-    {
-      id: 'DEL002',
-      orderId: 'ORD002',
-      customerName: 'Saman Silva',
-      customerPhone: '+94 77 345 6789',
-      pickupAddress: 'Farm - Kandy',
-      deliveryAddress: 'No. 12, Temple Road, Kandy',
-      products: [
-        { name: 'Papaya', quantity: 2, weight: '1kg' },
-        { name: 'Avocado', quantity: 3, weight: '250g' }
-      ],
-      status: 'pending',
-      assignedDate: '2024-11-29',
-      deliveryFee: 350.00
-    },
-    {
-      id: 'DEL003',
-      orderId: 'ORD003',
-      customerName: 'Nimal Fernando',
-      customerPhone: '+94 77 456 7890',
-      pickupAddress: 'Farm - Matale',
-      deliveryAddress: 'No. 78, Lake Road, Colombo 02',
-      products: [
-        { name: 'Cabbage', quantity: 1, weight: '1kg' },
-        { name: 'Beetroot', quantity: 2, weight: '500g' }
-      ],
-      status: 'completed',
-      assignedDate: '2024-11-25',
-      completedDate: '2024-11-26',
-      deliveryFee: 450.00
-    }
-  ])
+  // TODO: Fetch real deliveries from backend API when implemented
+  // For now, initialize with empty array to avoid showing fake data
+  const [deliveries, setDeliveries] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const getStatusColor = (status) => {
     switch (status) {

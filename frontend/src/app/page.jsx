@@ -4,11 +4,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import ProductCard from '@/components/ProductCard'
 import ProductFilter from '@/components/ProductFilter'
-import { getAllProducts } from '@/data/products'
+import { productAPI } from '@/services/api'
 import { useState, useMemo, useEffect } from 'react'
 
 export default function Home() {
-  const allProducts = getAllProducts()
+  const [allProducts, setAllProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [displayCount, setDisplayCount] = useState(8)
 
   // Carousel state
@@ -21,6 +22,39 @@ export default function Home() {
     '/images/background/home4.png',
     '/images/background/home5.png',
   ]
+
+  // Load products from database
+  useEffect(() => {
+    loadProducts()
+  }, [])
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await productAPI.getAllProducts()
+      if (response.success) {
+        // Transform database products to match frontend format
+        const transformedProducts = response.data.map(product => ({
+          id: `cat-${product.catalog_id}`,
+          catalogId: product.catalog_id,
+          name: product.product_name,
+          weight: product.standard_weight,
+          price: parseFloat(product.price), // This is min_price or suggested_price
+          image: product.image_url,
+          category: product.category,
+          farmerCount: product.farmer_count,
+          totalQuantity: product.total_quantity,
+          inStock: product.in_stock, // Track stock status
+          hasMinPrice: product.min_price !== null // Track if any farmer is selling
+        }))
+        setAllProducts(transformedProducts)
+      }
+    } catch (error) {
+      console.error('Failed to load products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Auto-switch images every 7 seconds
   useEffect(() => {
@@ -389,17 +423,34 @@ export default function Home() {
 
             {/* Products Grid - Right Side */}
             <div className="lg:col-span-3">
-              {/* Product Count */}
-              <div className="mb-6 text-gray-600">
-                Showing {productsToDisplay.length} of {filteredProducts.length} Products
-              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600 text-lg">Loading fresh products...</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Product Count */}
+                  <div className="mb-6 text-gray-600">
+                    Showing {productsToDisplay.length} of {filteredProducts.length} Products
+                  </div>
 
-              {/* Products Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {productsToDisplay.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+                  {/* Products Grid */}
+                  {productsToDisplay.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                      {productsToDisplay.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <p className="text-gray-500 text-lg">No products available at the moment</p>
+                    </div>
+                  )}
+                </>
+              )}
 
               {/* View More/Less Button */}
               <div className="text-center">

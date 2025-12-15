@@ -1,99 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 export default function ReportsTab() {
-  const [pastOrders] = useState([
-    {
-      id: 'ORD100',
-      customerName: 'Ravi Kumar',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 10, price: 150.00 },
-        { name: 'Papaya', quantity: 5, price: 180.00 }
-      ],
-      totalAmount: 2400.00,
-      orderDate: '2024-11-15',
-      completedDate: '2024-11-16',
-      paymentMethod: 'Online Payment'
-    },
-    {
-      id: 'ORD101',
-      customerName: 'Saman Jayawardena',
-      products: [
-        { name: 'Carrot', quantity: 20, price: 120.00 }
-      ],
-      totalAmount: 2400.00,
-      orderDate: '2024-11-18',
-      completedDate: '2024-11-19',
-      paymentMethod: 'Cash on Delivery'
-    },
-    {
-      id: 'ORD102',
-      customerName: 'Priya Dissanayake',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 8, price: 150.00 },
-        { name: 'Carrot', quantity: 10, price: 120.00 }
-      ],
-      totalAmount: 2400.00,
-      orderDate: '2024-11-20',
-      completedDate: '2024-11-21',
-      paymentMethod: 'Online Payment'
-    },
-    {
-      id: 'ORD103',
-      customerName: 'Nuwan Silva',
-      products: [
-        { name: 'Papaya', quantity: 15, price: 180.00 }
-      ],
-      totalAmount: 2700.00,
-      orderDate: '2024-11-22',
-      completedDate: '2024-11-23',
-      paymentMethod: 'Cash on Delivery'
-    },
-    {
-      id: 'ORD104',
-      customerName: 'Chamari Fernando',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 12, price: 150.00 },
-        { name: 'Papaya', quantity: 8, price: 180.00 }
-      ],
-      totalAmount: 3240.00,
-      orderDate: '2024-11-25',
-      completedDate: '2024-11-26',
-      paymentMethod: 'Online Payment'
-    }
-  ])
+  // TODO: Fetch real past orders from backend API when implemented
+  // For now, initialize with empty array to avoid showing fake data
+  const [pastOrders] = useState([])
+  const [loading, setLoading] = useState(false)
 
   // Calculate statistics
   const totalRevenue = pastOrders.reduce((sum, order) => sum + order.totalAmount, 0)
   const totalOrders = pastOrders.length
-  const averageOrderValue = totalRevenue / totalOrders
+  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
-  // Sales by date data for line chart
-  const salesByDate = [
-    { date: 'Nov 15', sales: 2400 },
-    { date: 'Nov 18', sales: 2400 },
-    { date: 'Nov 20', sales: 2400 },
-    { date: 'Nov 22', sales: 2700 },
-    { date: 'Nov 25', sales: 3240 }
-  ]
+  // Sales by date data for line chart (empty until real data is available)
+  const salesByDate = []
 
-  // Product sales data for bar chart
-  const productSales = [
-    { product: 'Tomatoes', quantity: 30, revenue: 4500 },
-    { product: 'Papaya', quantity: 28, revenue: 5040 },
-    { product: 'Carrot', quantity: 30, revenue: 3600 }
-  ]
+  // Product sales data for bar chart (empty until real data is available)
+  const productSales = []
 
-  // Customer distribution for pie chart
-  const customerData = [
-    { name: 'Ravi Kumar', value: 2400 },
-    { name: 'Saman J.', value: 2400 },
-    { name: 'Priya D.', value: 2400 },
-    { name: 'Nuwan Silva', value: 2700 },
-    { name: 'Chamari F.', value: 3240 }
-  ]
+  // Customer distribution for pie chart (empty until real data is available)
+  const customerData = []
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
 

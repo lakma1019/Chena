@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { showConfirm } from '@/utils/notifications'
 
 export default function CartTab() {
+  const router = useRouter()
   const [cartItems, setCartItems] = useState([])
 
   useEffect(() => {
@@ -12,7 +15,13 @@ export default function CartTab() {
 
   const loadCart = () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    setCartItems(cart)
+    // Ensure price is always a number
+    const normalizedCart = cart.map(item => ({
+      ...item,
+      price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+      quantity: typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity) || 1
+    }))
+    setCartItems(normalizedCart)
   }
 
   const updateCart = (updatedCart) => {
@@ -36,14 +45,18 @@ export default function CartTab() {
     updateCart(updatedCart)
   }
 
-  const handleClearCart = () => {
-    if (confirm('Are you sure you want to clear your cart?')) {
+  const handleClearCart = async () => {
+    const confirmed = await showConfirm('Are you sure you want to clear your cart?')
+    if (confirmed) {
       updateCart([])
     }
   }
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    return cartItems.reduce((sum, item) => {
+      const price = typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0
+      return sum + (price * item.quantity)
+    }, 0)
   }
 
   const calculateTotal = () => {
@@ -57,9 +70,9 @@ export default function CartTab() {
       alert('Your cart is empty!')
       return
     }
-    
-    // TODO: Implement checkout logic
-    alert('Checkout functionality will be implemented soon!')
+
+    // Navigate to checkout page
+    router.push('/checkout')
   }
 
   return (
@@ -110,7 +123,7 @@ export default function CartTab() {
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
                     <p className="text-gray-600 text-sm">{item.weight}</p>
-                    <p className="text-blue-600 text-lg font-bold mt-1">Rs. {item.price.toFixed(2)}</p>
+                    <p className="text-blue-600 text-lg font-bold mt-1">Rs. {(typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0).toFixed(2)}</p>
                   </div>
 
                   {/* Quantity Controls */}
@@ -133,7 +146,7 @@ export default function CartTab() {
                   {/* Subtotal & Remove */}
                   <div className="text-right">
                     <p className="text-xl font-bold text-gray-800 mb-2">
-                      Rs. {(item.price * item.quantity).toFixed(2)}
+                      Rs. {((typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0) * item.quantity).toFixed(2)}
                     </p>
                     <button
                       onClick={() => handleRemoveItem(item.id)}

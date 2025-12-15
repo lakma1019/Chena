@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import SignIn from '@/components/SignIn'
 import { authAPI } from '@/services/api'
+import { showAlert } from '@/utils/notifications'
 
 export default function FarmerLogin() {
   const router = useRouter()
@@ -25,7 +26,7 @@ export default function FarmerLogin() {
         router.push('/farmer-dashboard')
       }
     } catch (error) {
-      alert(error.message || 'Invalid email or password. Please try again.')
+      await showAlert(error.message || 'Invalid email or password. Please try again.', 'error')
     }
   }
 
@@ -39,15 +40,22 @@ export default function FarmerLogin() {
         phone: signUpData.phone,
         nic: signUpData.nic,
         address: signUpData.address,
+        // Farmer-specific fields
+        farmName: signUpData.farmName,
+        farmSize: signUpData.farmSize ? `${signUpData.farmSize} ${signUpData.farmSizeUnit}` : '',
+        farmType: signUpData.farmType,
+        bankName: signUpData.bankName,
+        branch: signUpData.branch,
+        bankAccount: signUpData.bankAccount,
       })
 
       if (response.success) {
-        alert('Registration successful! Please sign in with your credentials.')
+        await showAlert('Registration successful! Please sign in with your credentials.', 'success')
         // Switch to sign in tab or redirect
         window.location.reload()
       }
     } catch (error) {
-      alert(error.message || 'Registration failed. Please try again.')
+      await showAlert(error.message || 'Registration failed. Please try again.', 'error')
     }
   }
 

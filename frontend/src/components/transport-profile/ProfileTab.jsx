@@ -1,19 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-export default function ProfileTab() {
+export default function ProfileTab({ userData }) {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeliveryForm, setShowDeliveryForm] = useState(false)
   const [hasDeliveryDetails, setHasDeliveryDetails] = useState(false)
   const [profileData, setProfileData] = useState({
-    fullName: 'Kamal Transport Services',
-    email: 'kamal@transport.com',
-    phone: '+94 77 345 6789',
-    nic: '198512345678',
-    address: 'No. 78, Galle Road, Colombo 03',
-    city: 'Colombo',
-    postalCode: '00300'
+    fullName: '',
+    email: '',
+    phone: '',
+    nic: '',
+    address: '',
+    city: '',
+    postalCode: ''
   })
 
   const [deliveryData, setDeliveryData] = useState({
@@ -29,6 +29,23 @@ export default function ProfileTab() {
 
   const [editData, setEditData] = useState({ ...profileData })
   const [editDeliveryData, setEditDeliveryData] = useState({ ...deliveryData })
+
+  // Update profile data when userData prop changes
+  useEffect(() => {
+    if (userData) {
+      const updatedData = {
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        nic: userData.nic || '',
+        address: userData.address || '',
+        city: userData.city || '',
+        postalCode: userData.postal_code || userData.postalCode || ''
+      }
+      setProfileData(updatedData)
+      setEditData(updatedData)
+    }
+  }, [userData])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -82,13 +99,25 @@ export default function ProfileTab() {
     setEditDeliveryData({ ...deliveryData })
   }
 
+  // Show loading state if no user data
+  if (!userData || !profileData.fullName) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
         <div className="flex items-center space-x-6">
           <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
-            {profileData.fullName.charAt(0)}
+            {profileData.fullName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-gray-800">{profileData.fullName}</h2>

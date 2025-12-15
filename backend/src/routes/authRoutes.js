@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login, resetPassword, getCurrentUser, refreshToken } from "../controllers/authController.js";
+import { signup, login, resetPassword, getCurrentUser, refreshToken, updateProfile } from "../controllers/authController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -15,6 +15,9 @@ router.post("/reset-password", resetPassword);
 
 // GET /api/auth/me - Get current logged in user (protected route)
 router.get("/me", authenticateToken, getCurrentUser);
+
+// PUT /api/auth/profile - Update user profile (protected route)
+router.put("/profile", authenticateToken, updateProfile);
 
 // POST /api/auth/refresh - Refresh access token
 router.post("/refresh", refreshToken);

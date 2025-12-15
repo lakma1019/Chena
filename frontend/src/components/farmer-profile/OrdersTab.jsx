@@ -1,51 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function OrdersTab() {
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD001',
-      customerName: 'Nimal Silva',
-      customerPhone: '+94 77 234 5678',
-      customerAddress: 'No. 12, Main Street, Colombo 07',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 5, weight: '1kg', price: 150.00 },
-        { name: 'Papaya', quantity: 2, weight: '1kg', price: 180.00 }
-      ],
-      totalAmount: 1110.00,
-      orderDate: '2024-11-28',
-      status: 'pending',
-      paymentMethod: 'Cash on Delivery'
-    },
-    {
-      id: 'ORD002',
-      customerName: 'Kamala Perera',
-      customerPhone: '+94 71 345 6789',
-      customerAddress: 'No. 45, Lake Road, Kandy',
-      products: [
-        { name: 'Carrot', quantity: 10, weight: '500g', price: 120.00 }
-      ],
-      totalAmount: 1200.00,
-      orderDate: '2024-11-28',
-      status: 'processing',
-      paymentMethod: 'Online Payment'
-    },
-    {
-      id: 'ORD003',
-      customerName: 'Suresh Fernando',
-      customerPhone: '+94 76 456 7890',
-      customerAddress: 'No. 78, Beach Road, Galle',
-      products: [
-        { name: 'Fresh Tomatoes', quantity: 3, weight: '1kg', price: 150.00 },
-        { name: 'Carrot', quantity: 5, weight: '500g', price: 120.00 }
-      ],
-      totalAmount: 1050.00,
-      orderDate: '2024-11-27',
-      status: 'ready',
-      paymentMethod: 'Cash on Delivery'
-    }
-  ])
+  // TODO: Fetch real orders from backend API when implemented
+  // For now, initialize with empty array to avoid showing fake data
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const [filterStatus, setFilterStatus] = useState('all')
 

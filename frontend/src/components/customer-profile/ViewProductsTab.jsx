@@ -1,17 +1,52 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import ProductCard from '@/components/ProductCard'
 import ProductFilter from '@/components/ProductFilter'
-import { getAllProducts } from '@/data/products'
+import { productAPI } from '@/services/api'
 
 export default function ViewProductsTab() {
-  const allProducts = getAllProducts()
+  const [allProducts, setAllProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [displayCount, setDisplayCount] = useState(12)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedSubCategory, setSelectedSubCategory] = useState(null)
   const [priceRange, setPriceRange] = useState([0, 500])
   const [applyFilter, setApplyFilter] = useState(false)
+
+  // Fetch products from backend API on component mount
+  useEffect(() => {
+    loadProducts()
+  }, [])
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await productAPI.getAllProducts()
+      if (response.success) {
+        // Transform database products to match frontend format
+        const transformedProducts = response.data.map(product => ({
+          id: `cat-${product.catalog_id}`,
+          catalogId: product.catalog_id,
+          name: product.product_name,
+          weight: product.standard_weight, // Use standard_weight from product_catalog
+          price: parseFloat(product.price), // Backend already calculates min_price or suggested_price
+          image: product.image_url,
+          category: product.category,
+          farmerCount: product.farmer_count,
+          totalQuantity: product.total_quantity,
+          inStock: product.in_stock, // Track stock status
+          hasMinPrice: product.min_price !== null, // Track if any farmer is selling
+          description: product.description
+        }))
+        setAllProducts(transformedProducts)
+      }
+    } catch (error) {
+      console.error('Failed to load products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts]
@@ -51,6 +86,18 @@ export default function ViewProductsTab() {
 
   const handleLoadMore = () => {
     setDisplayCount(prev => prev + 12)
+  }
+
+  // Show loading state while fetching products
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-lg">Loading products...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

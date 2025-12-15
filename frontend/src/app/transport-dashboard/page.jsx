@@ -148,7 +148,7 @@ export default function TransportDashboard() {
 
         {/* Tab Content */}
         <div className="p-8">
-          {activeTab === 'profile' && <ProfileTab />}
+          {activeTab === 'profile' && <ProfileTab userData={userData} />}
           {activeTab === 'deliveries' && <DeliveriesTab />}
         </div>
       </main>

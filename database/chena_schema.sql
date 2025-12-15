@@ -32,7 +32,8 @@ CREATE TABLE farmers (
     farmer_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNIQUE NOT NULL,
     farm_name VARCHAR(255) NOT NULL,
-    farm_size VARCHAR(50),
+    farm_size DECIMAL(10, 2) COMMENT 'Numeric value of farm size',
+    farm_size_unit ENUM('Acre', 'Perch') DEFAULT 'Acre' COMMENT 'Unit of measurement for farm size',
     farm_type VARCHAR(100),
     bank_account VARCHAR(50),
     bank_name VARCHAR(100),
@@ -99,7 +100,6 @@ CREATE TABLE product_catalog (
     ) NOT NULL,
     standard_weight VARCHAR(50) NOT NULL,
     suggested_price DECIMAL(10, 2) NOT NULL,
-    image_url VARCHAR(500),
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -399,6 +399,7 @@ INSERT INTO farmers (
         user_id,
         farm_name,
         farm_size,
+        farm_size_unit,
         farm_type,
         bank_account,
         bank_name,
@@ -407,7 +408,8 @@ INSERT INTO farmers (
 VALUES (
         2,
         'Sunil Organic Farm',
-        '5 Acres',
+        5.00,
+        'Acre',
         'Organic Vegetables',
         '1234567890',
         'Bank of Ceylon',
@@ -416,7 +418,8 @@ VALUES (
     (
         3,
         'Nimal Fresh Produce',
-        '3 Acres',
+        3.00,
+        'Acre',
         'Mixed Farming',
         '9876543210',
         'Commercial Bank',
@@ -495,311 +498,297 @@ INSERT INTO product_catalog (
         product_name,
         category,
         standard_weight,
-        suggested_price,
-        image_url
+        suggested_price
     )
 VALUES (
         'Avocado',
         'fruits',
         '250g',
-        150.00,
-        '/images/list/fruits/avacado.png'
+        150.00
     ),
     (
         'Grapes Red',
         'fruits',
         '500g',
-        350.00,
-        '/images/list/fruits/grapes red.png'
+        350.00
     ),
     (
         'Mandarin',
         'fruits',
         '1kg',
-        280.00,
-        '/images/list/fruits/mandarin.png'
+        280.00
     ),
     (
         'Narang',
         'fruits',
         '1kg',
-        200.00,
-        '/images/list/fruits/narang.png'
+        200.00
     ),
     (
         'Papaya',
         'fruits',
         '1kg',
-        180.00,
-        '/images/list/fruits/papaya.png'
+        180.00
+    ),
+    (
+        'Passion Fruit',
+        'fruits',
+        '500g',
+        300.00
     ),
     (
         'Pineapple',
         'fruits',
         '1kg',
-        220.00,
-        '/images/list/fruits/pineapple.png'
+        220.00
     ),
     (
         'Pomegranate',
         'fruits',
         '500g',
-        400.00,
-        '/images/list/fruits/pomegranate.png'
+        400.00
     ),
     (
-        'Rambutan',
+        'Soursop',
+        'fruits',
+        '1kg',
+        350.00
+    ),
+    (
+        'Star Fruit',
         'fruits',
         '500g',
-        250.00,
-        '/images/list/fruits/rambutan.png'
+        200.00
     ),
     (
         'Watermelon',
         'fruits',
         '1kg',
-        120.00,
-        '/images/list/fruits/watermelon.png'
+        120.00
     ),
     (
         'Wood Apple',
         'fruits',
         '500g',
-        150.00,
-        '/images/list/fruits/wood apple.png'
+        150.00
     );
 -- Insert Product Catalog (Low Country Vegetables)
 INSERT INTO product_catalog (
         product_name,
         category,
         standard_weight,
-        suggested_price,
-        image_url
+        suggested_price
     )
 VALUES (
         'Amberella',
         'low-country-vegetable',
         '500g',
-        120.00,
-        '/images/list/low country vegetable/amberella.png'
+        120.00
     ),
     (
         'Ash Plantain',
         'low-country-vegetable',
         '1kg',
-        180.00,
-        '/images/list/low country vegetable/ash plantain.png'
+        180.00
     ),
     (
         'Banana Blossom',
         'low-country-vegetable',
         '500g',
-        100.00,
-        '/images/list/low country vegetable/banana blossom.png'
+        100.00
     ),
     (
         'Beans',
         'low-country-vegetable',
         '500g',
-        200.00,
-        '/images/list/low country vegetable/beans.png'
+        200.00
+    ),
+    (
+        'Bird Eye Chilli',
+        'low-country-vegetable',
+        '100g',
+        80.00
     ),
     (
         'Bitter Gourd',
         'low-country-vegetable',
         '500g',
-        150.00,
-        '/images/list/low country vegetable/bitter gourd.png'
+        150.00
     ),
     (
-        'Brinjal',
+        'Broccoli',
         'low-country-vegetable',
         '500g',
-        120.00,
-        '/images/list/low country vegetable/brinjal.png'
-    ),
-    (
-        'Cabbage',
-        'low-country-vegetable',
-        '1kg',
-        180.00,
-        '/images/list/low country vegetable/cabbage.png'
-    ),
-    (
-        'Capsicum',
-        'low-country-vegetable',
-        '500g',
-        300.00,
-        '/images/list/low country vegetable/capsicum.png'
+        300.00
     ),
     (
         'Cucumber',
         'low-country-vegetable',
         '500g',
-        100.00,
-        '/images/list/low country vegetable/cucumber.png'
+        100.00
     ),
     (
         'Drumstick',
         'low-country-vegetable',
         '500g',
-        180.00,
-        '/images/list/low country vegetable/drumstick.png'
+        180.00
     ),
     (
-        'Green Chilli',
+        'Ginger',
         'low-country-vegetable',
         '250g',
-        150.00,
-        '/images/list/low country vegetable/green chilli.png'
+        150.00
     ),
     (
-        'Okra',
+        'Ladies Fingers',
         'low-country-vegetable',
         '500g',
-        200.00,
-        '/images/list/low country vegetable/okra.png'
+        200.00
+    ),
+    (
+        'Long Beans',
+        'low-country-vegetable',
+        '500g',
+        180.00
+    ),
+    (
+        'Lotus Root',
+        'low-country-vegetable',
+        '500g',
+        250.00
+    ),
+    (
+        'Luffa Gourd',
+        'low-country-vegetable',
+        '500g',
+        140.00
+    ),
+    (
+        'Potato',
+        'low-country-vegetable',
+        '1kg',
+        200.00
     ),
     (
         'Pumpkin',
         'low-country-vegetable',
         '1kg',
-        120.00,
-        '/images/list/low country vegetable/pumpkin.png'
+        120.00
     ),
     (
-        'Ridge Gourd',
+        'Sarana',
         'low-country-vegetable',
         '500g',
-        140.00,
-        '/images/list/low country vegetable/ridge gourd.png'
+        100.00
     ),
     (
-        'Snake Gourd',
+        'Sweet Potato',
+        'low-country-vegetable',
+        '1kg',
+        150.00
+    ),
+    (
+        'Thalana Batu',
         'low-country-vegetable',
         '500g',
-        130.00,
-        '/images/list/low country vegetable/snake gourd.png'
+        120.00
     ),
     (
         'Tomato',
         'low-country-vegetable',
         '500g',
-        180.00,
-        '/images/list/low country vegetable/tomato.png'
-    ),
-    (
-        'Winged Bean',
-        'low-country-vegetable',
-        '500g',
-        220.00,
-        '/images/list/low country vegetable/winged bean.png'
+        180.00
     );
 -- Insert Product Catalog (Up Country Vegetables)
 INSERT INTO product_catalog (
         product_name,
         category,
         standard_weight,
-        suggested_price,
-        image_url
+        suggested_price
     )
 VALUES (
         'Baby Carrot',
         'up-country-vegetable',
         '500g',
-        280.00,
-        '/images/list/up country vegetable/baby carrot.png'
+        280.00
     ),
     (
         'Beetroot',
         'up-country-vegetable',
         '500g',
-        200.00,
-        '/images/list/up country vegetable/beetroot.png'
+        200.00
     ),
     (
         'Bell Pepper Green',
         'up-country-vegetable',
         '500g',
-        320.00,
-        '/images/list/up country vegetable/bell pepper green.png'
+        320.00
     ),
     (
         'Bell Pepper Red',
         'up-country-vegetable',
         '500g',
-        380.00,
-        '/images/list/up country vegetable/bell pepper red.png'
+        380.00
     ),
     (
         'Bell Pepper Yellow',
         'up-country-vegetable',
         '500g',
-        380.00,
-        '/images/list/up country vegetable/bell pepper yellow.png'
+        380.00
+    ),
+    (
+        'Bok Choy',
+        'up-country-vegetable',
+        '500g',
+        200.00
     ),
     (
         'Broccoli',
         'up-country-vegetable',
         '500g',
-        350.00,
-        '/images/list/up country vegetable/broccoli.png'
+        350.00
+    ),
+    (
+        'Cabbage',
+        'up-country-vegetable',
+        '1kg',
+        180.00
     ),
     (
         'Carrot',
         'up-country-vegetable',
         '500g',
-        200.00,
-        '/images/list/up country vegetable/carrot.png'
+        200.00
     ),
     (
         'Cauliflower',
         'up-country-vegetable',
         '1kg',
-        280.00,
-        '/images/list/up country vegetable/cauliflower.png'
+        280.00
     ),
     (
         'Celery',
         'up-country-vegetable',
         '500g',
-        250.00,
-        '/images/list/up country vegetable/celery.png'
+        250.00
     ),
     (
-        'Chinese Cabbage',
+        'Cucumber Green',
         'up-country-vegetable',
         '500g',
-        180.00,
-        '/images/list/up country vegetable/chinese cabbage.png'
-    ),
-    (
-        'Garlic',
-        'up-country-vegetable',
-        '250g',
-        200.00,
-        '/images/list/up country vegetable/garlic.png'
-    ),
-    (
-        'Knol Khol',
-        'up-country-vegetable',
-        '500g',
-        180.00,
-        '/images/list/up country vegetable/knol khol.png'
+        150.00
     ),
     (
         'Leeks',
         'up-country-vegetable',
         '500g',
-        220.00,
-        '/images/list/up country vegetable/leaks.png'
+        220.00
     ),
     (
         'Radish Long',
         'up-country-vegetable',
         '500g',
-        160.00,
-        '/images/list/up country vegetable/radish long.png'
+        160.00
     );
 -- Insert Sample Farmer Products (Inventory)
 INSERT INTO farmer_products (

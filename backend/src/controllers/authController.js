@@ -86,10 +86,25 @@ export const signup = async (req, res) => {
 
     // Insert into specific user type table
     if (userType === "farmer") {
+      // Parse farm size to extract numeric value and unit
+      let farmSizeValue = null;
+      let farmSizeUnit = 'Acre'; // Default unit
+
+      if (farmSize) {
+        // Extract numeric value and unit from string like "120 Acre" or "50 Perch"
+        const match = farmSize.match(/^([\d.]+)\s*(Acre|Perch|acre|perch)?$/i);
+        if (match) {
+          farmSizeValue = parseFloat(match[1]);
+          if (match[2]) {
+            farmSizeUnit = match[2].charAt(0).toUpperCase() + match[2].slice(1).toLowerCase(); // Normalize to "Acre" or "Perch"
+          }
+        }
+      }
+
       await db.query(
-        `INSERT INTO farmers (user_id, farm_name, farm_size, farm_type, bank_account, bank_name, branch)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [userId, farmName || "", farmSize || null, farmType || null, bankAccount || null, bankName || null, branch || null]
+        `INSERT INTO farmers (user_id, farm_name, farm_size, farm_size_unit, farm_type, bank_account, bank_name, branch)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, farmName || "", farmSizeValue, farmSizeUnit, farmType || null, bankAccount || null, bankName || null, branch || null]
       );
     } else if (userType === "customer") {
       await db.query(
@@ -191,7 +206,12 @@ export const login = async (req, res) => {
         [user.user_id]
       );
       if (farmers.length > 0) {
-        additionalData = farmers[0];
+        const farmerData = farmers[0];
+        // Combine farm_size and farm_size_unit for frontend compatibility
+        if (farmerData.farm_size && farmerData.farm_size_unit) {
+          farmerData.farm_size = `${farmerData.farm_size} ${farmerData.farm_size_unit}`;
+        }
+        additionalData = farmerData;
       }
     } else if (userType === "customer") {
       const [customers] = await db.query(
@@ -335,7 +355,12 @@ export const getCurrentUser = async (req, res) => {
         [userId]
       );
       if (farmers.length > 0) {
-        additionalData = farmers[0];
+        const farmerData = farmers[0];
+        // Combine farm_size and farm_size_unit for frontend compatibility
+        if (farmerData.farm_size && farmerData.farm_size_unit) {
+          farmerData.farm_size = `${farmerData.farm_size} ${farmerData.farm_size_unit}`;
+        }
+        additionalData = farmerData;
       }
     } else if (userType === "customer") {
       const [customers] = await db.query(
@@ -436,3 +461,223 @@ export const refreshToken = async (req, res) => {
   }
 };
 
+// ============================================
+// UPDATE PROFILE - Update user profile information
+// ============================================
+export const updateProfile = async (req, res) => {
+  try {
+    const { userId, userType } = req.user;
+    const {
+      fullName,
+      phone,
+      address,
+      // Farmer specific
+      farmName,
+      farmSize,
+      farmType,
+      bankAccount,
+      bankName,
+      branch,
+      // Customer specific
+      city,
+      postalCode,
+    } = req.body;
+
+    console.log("=== UPDATE PROFILE REQUEST ===");
+    console.log("User ID:", userId);
+    console.log("User Type:", userType);
+    console.log("Request Body:", req.body);
+
+    // Update users table
+    const userUpdates = [];
+    const userValues = [];
+
+    if (fullName !== undefined && fullName !== null && fullName !== '') {
+      userUpdates.push("full_name = ?");
+      userValues.push(fullName);
+    }
+    if (phone !== undefined && phone !== null && phone !== '') {
+      userUpdates.push("phone = ?");
+      userValues.push(phone);
+    }
+    if (address !== undefined && address !== null && address !== '') {
+      userUpdates.push("address = ?");
+      userValues.push(address);
+    }
+
+    if (userUpdates.length > 0) {
+      userValues.push(userId);
+      const userQuery = `UPDATE users SET ${userUpdates.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+      console.log("User update query:", userQuery, userValues);
+      await db.query(userQuery, userValues);
+    }
+
+    // Update user-type specific tables
+    if (userType === "farmer") {
+      // Check if farmer record exists
+      const [existingFarmer] = await db.query(
+        "SELECT farmer_id FROM farmers WHERE user_id = ?",
+        [userId]
+      );
+
+      if (existingFarmer.length === 0) {
+        // Create farmer record if it doesn't exist
+        console.log("Creating new farmer record for user:", userId);
+
+        // Parse farm size for initial insert
+        let farmSizeValue = null;
+        let farmSizeUnit = 'Acre';
+
+        if (farmSize) {
+          const match = farmSize.match(/^([\d.]+)\s*(Acre|Perch)?$/i);
+          if (match) {
+            farmSizeValue = parseFloat(match[1]);
+            farmSizeUnit = match[2] ? match[2].charAt(0).toUpperCase() + match[2].slice(1).toLowerCase() : 'Acre';
+          } else {
+            const numericValue = parseFloat(farmSize);
+            if (!isNaN(numericValue)) {
+              farmSizeValue = numericValue;
+            }
+          }
+        }
+
+        await db.query(
+          `INSERT INTO farmers (user_id, farm_name, farm_size, farm_size_unit, farm_type, bank_account, bank_name, branch)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            userId,
+            farmName || "My Farm", // Provide default value since it's NOT NULL
+            farmSizeValue,
+            farmSizeUnit,
+            farmType || null,
+            bankAccount || null,
+            bankName || null,
+            branch || null
+          ]
+        );
+      } else {
+        // Update existing farmer record
+        const farmerUpdates = [];
+        const farmerValues = [];
+
+        if (farmName !== undefined && farmName !== null && farmName !== '') {
+          farmerUpdates.push("farm_name = ?");
+          farmerValues.push(farmName);
+        }
+
+        if (farmSize !== undefined && farmSize !== null && farmSize !== '') {
+          // Parse farm size (e.g., "120 Acre" -> 120 and "Acre")
+          const match = farmSize.match(/^([\d.]+)\s*(Acre|Perch)?$/i);
+          console.log("Farm size parsing:", { farmSize, match });
+
+          if (match) {
+            farmerUpdates.push("farm_size = ?");
+            farmerValues.push(parseFloat(match[1]));
+
+            // Always set unit - default to 'Acre' if not specified
+            const unit = match[2] ? match[2].charAt(0).toUpperCase() + match[2].slice(1).toLowerCase() : 'Acre';
+            farmerUpdates.push("farm_size_unit = ?");
+            farmerValues.push(unit);
+          } else {
+            // If no match, try to parse as just a number
+            const numericValue = parseFloat(farmSize);
+            if (!isNaN(numericValue)) {
+              farmerUpdates.push("farm_size = ?");
+              farmerValues.push(numericValue);
+              farmerUpdates.push("farm_size_unit = ?");
+              farmerValues.push('Acre'); // Default to Acre
+            }
+          }
+        }
+
+        if (farmType !== undefined && farmType !== null && farmType !== '') {
+          farmerUpdates.push("farm_type = ?");
+          farmerValues.push(farmType);
+        }
+
+        if (bankAccount !== undefined && bankAccount !== null && bankAccount !== '') {
+          farmerUpdates.push("bank_account = ?");
+          farmerValues.push(bankAccount);
+        }
+
+        if (bankName !== undefined && bankName !== null && bankName !== '') {
+          farmerUpdates.push("bank_name = ?");
+          farmerValues.push(bankName);
+        }
+
+        if (branch !== undefined && branch !== null && branch !== '') {
+          farmerUpdates.push("branch = ?");
+          farmerValues.push(branch);
+        }
+
+        if (farmerUpdates.length > 0) {
+          farmerValues.push(userId);
+          const farmerQuery = `UPDATE farmers SET ${farmerUpdates.join(", ")} WHERE user_id = ?`;
+          console.log("Farmer update query:", farmerQuery, farmerValues);
+          await db.query(farmerQuery, farmerValues);
+        }
+      }
+    } else if (userType === "customer") {
+      const customerUpdates = [];
+      const customerValues = [];
+
+      if (city !== undefined && city !== null && city !== '') {
+        customerUpdates.push("city = ?");
+        customerValues.push(city);
+      }
+
+      if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
+        customerUpdates.push("postal_code = ?");
+        customerValues.push(postalCode);
+      }
+
+      if (customerUpdates.length > 0) {
+        customerValues.push(userId);
+        await db.query(
+          `UPDATE customers SET ${customerUpdates.join(", ")} WHERE user_id = ?`,
+          customerValues
+        );
+      }
+    } else if (userType === "transport") {
+      const transportUpdates = [];
+      const transportValues = [];
+
+      if (city !== undefined && city !== null && city !== '') {
+        transportUpdates.push("city = ?");
+        transportValues.push(city);
+      }
+
+      if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
+        transportUpdates.push("postal_code = ?");
+        transportValues.push(postalCode);
+      }
+
+      if (transportUpdates.length > 0) {
+        transportValues.push(userId);
+        await db.query(
+          `UPDATE transport_providers SET ${transportUpdates.join(", ")} WHERE user_id = ?`,
+          transportValues
+        );
+      }
+    }
+
+    console.log("=== PROFILE UPDATED SUCCESSFULLY ===");
+    console.log("User ID:", userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    console.error("=== UPDATE PROFILE ERROR ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Full error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating profile",
+      error: error.message,
+    });
+  }
+};

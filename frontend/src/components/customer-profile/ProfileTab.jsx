@@ -1,20 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-export default function ProfileTab() {
+export default function ProfileTab({ userData }) {
   const [isEditing, setIsEditing] = useState(false)
   const [profileData, setProfileData] = useState({
-    fullName: 'Rasini Perera',
-    email: 'rasini@gmail.com',
-    phone: '+94 77 234 5678',
-    nic: '199512345678',
-    address: 'No. 45, Main Street, Colombo 07',
-    city: 'Colombo',
-    postalCode: '00700'
+    fullName: '',
+    email: '',
+    phone: '',
+    nic: '',
+    address: '',
+    city: '',
+    postalCode: ''
   })
 
   const [editData, setEditData] = useState({ ...profileData })
+
+  // Update profile data when userData prop changes
+  useEffect(() => {
+    if (userData) {
+      const updatedData = {
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        nic: userData.nic || '',
+        address: userData.address || '',
+        city: userData.city || '',
+        postalCode: userData.postal_code || userData.postalCode || ''
+      }
+      setProfileData(updatedData)
+      setEditData(updatedData)
+    }
+  }, [userData])
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -39,13 +56,25 @@ export default function ProfileTab() {
     })
   }
 
+  // Show loading state if no user data
+  if (!userData || !profileData.fullName) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Profile Header */}
       <div className="bg-white rounded-xl shadow-lg p-8 border-2 border-gray-200">
         <div className="flex items-center space-x-6">
           <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-5xl font-bold shadow-lg">
-            {profileData.fullName.charAt(0)}
+            {profileData.fullName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-gray-800">{profileData.fullName}</h2>

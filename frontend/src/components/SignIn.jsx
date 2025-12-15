@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { showAlert } from '@/utils/notifications'
+import { sriLankanBanks, farmTypes, farmSizeUnits } from '@/data/sriLankanBanks'
 
 export default function SignIn({
   title = "Sign In as a Farmer",
@@ -28,8 +30,18 @@ export default function SignIn({
     password: '',
     confirmPassword: '',
     address: '',
-    agreeToTerms: false
+    agreeToTerms: false,
+    // Farmer specific fields
+    farmName: '',
+    farmSize: '',
+    farmSizeUnit: 'Acre',
+    farmType: '',
+    bankName: '',
+    branch: '',
+    bankAccount: ''
   })
+
+  const [selectedBankBranches, setSelectedBankBranches] = useState([])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -45,6 +57,13 @@ export default function SignIn({
       ...signUpData,
       [name]: type === 'checkbox' ? checked : value
     })
+
+    // Update branches when bank is selected
+    if (name === 'bankName') {
+      const selectedBank = sriLankanBanks.find(bank => bank.name === value)
+      setSelectedBankBranches(selectedBank ? selectedBank.branches : [])
+      setSignUpData(prev => ({ ...prev, branch: '' })) // Reset branch when bank changes
+    }
   }
 
   const handleSubmit = (e) => {
@@ -56,10 +75,10 @@ export default function SignIn({
     }
   }
 
-  const handleSignUpSubmit = (e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault()
     if (signUpData.password !== signUpData.confirmPassword) {
-      alert('Passwords do not match!')
+      await showAlert('Passwords do not match!', 'error')
       return
     }
     if (onSignUp) {
@@ -187,6 +206,75 @@ export default function SignIn({
                   <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                   <input type="text" id="address" name="address" value={signUpData.address} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Enter your address" />
                 </div>
+
+                {/* Farmer-specific fields */}
+                {userType === 'farmer' && (
+                  <>
+                    <div className="border-t-2 border-gray-200 pt-4 mt-2">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Farm Information</h3>
+                    </div>
+
+                    <div>
+                      <label htmlFor="farmName" className="block text-sm font-medium text-gray-700 mb-2">Farm Name</label>
+                      <input type="text" id="farmName" name="farmName" value={signUpData.farmName} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50" placeholder="Enter your farm name" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="farmSize" className="block text-sm font-medium text-gray-700 mb-2">Farm Size</label>
+                        <input type="number" id="farmSize" name="farmSize" value={signUpData.farmSize} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50" placeholder="Enter size" />
+                      </div>
+                      <div>
+                        <label htmlFor="farmSizeUnit" className="block text-sm font-medium text-gray-700 mb-2">Unit</label>
+                        <select id="farmSizeUnit" name="farmSizeUnit" value={signUpData.farmSizeUnit} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50">
+                          {farmSizeUnits.map(unit => (
+                            <option key={unit} value={unit}>{unit}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="farmType" className="block text-sm font-medium text-gray-700 mb-2">Farm Type</label>
+                      <select id="farmType" name="farmType" value={signUpData.farmType} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50">
+                        <option value="">Select farm type</option>
+                        {farmTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="border-t-2 border-gray-200 pt-4 mt-2">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Bank Information</h3>
+                    </div>
+
+                    <div>
+                      <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                      <select id="bankName" name="bankName" value={signUpData.bankName} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50">
+                        <option value="">Select bank</option>
+                        {sriLankanBanks.map(bank => (
+                          <option key={bank.name} value={bank.name}>{bank.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
+                      <select id="branch" name="branch" value={signUpData.branch} onChange={handleSignUpChange} required disabled={!signUpData.bankName} className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50 disabled:bg-gray-200 disabled:cursor-not-allowed">
+                        <option value="">Select branch</option>
+                        {selectedBankBranches.map(branch => (
+                          <option key={branch} value={branch}>{branch}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="bankAccount" className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                      <input type="text" id="bankAccount" name="bankAccount" value={signUpData.bankAccount} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-gray-50" placeholder="Enter account number" />
+                    </div>
+                  </>
+                )}
+
                 <div>
                   <label htmlFor="signupPassword" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                   <input type="password" id="signupPassword" name="password" value={signUpData.password} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Create a password" />

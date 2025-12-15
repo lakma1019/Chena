@@ -124,7 +124,7 @@ export default function CustomerDashboard() {
                     <span className="ml-3 font-semibold">{item.name}</span>
                   )}
                   {item.badge > 0 && (
-                    <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-1 right-1'} bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center`}>
+                    <span className={`absolute ${isSidebarOpen ? 'right-3' : 'top-1 right-1'} bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center`}>
                       {item.badge}
                     </span>
                   )}
@@ -173,7 +173,7 @@ export default function CustomerDashboard() {
 
         {/* Tab Content */}
         <div className="p-8">
-          {activeTab === 'profile' && <ProfileTab />}
+          {activeTab === 'profile' && <ProfileTab userData={userData} />}
           {activeTab === 'products' && <ViewProductsTab />}
           {activeTab === 'cart' && <CartTab />}
           {activeTab === 'orders' && <OrdersTab />}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { showAlert } from '@/utils/notifications'
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -17,11 +18,11 @@ export default function ContactUs() {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     // TODO: Implement contact form submission
     console.log('Contact form submitted:', formData)
-    alert('Thank you for contacting us! We will get back to you soon.')
+    await showAlert('Thank you for contacting us! We will get back to you soon.', 'success')
     setFormData({ name: '', email: '', subject: '', message: '' })
   }
 
