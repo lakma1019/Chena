@@ -9,8 +9,14 @@ export const addProduct = async (req, res) => {
     const { userId, userType } = req.user;
     const { catalogId, quantityAvailable, price, weightUnit } = req.body;
 
+    console.log("=== ADD PRODUCT REQUEST ===");
+    console.log("User ID:", userId);
+    console.log("User Type:", userType);
+    console.log("Request Body:", req.body);
+
     // Validate user is a farmer
     if (userType !== "farmer") {
+      console.log("Error: User is not a farmer");
       return res.status(403).json({
         success: false,
         message: "Only farmers can add products",
@@ -19,6 +25,7 @@ export const addProduct = async (req, res) => {
 
     // Validate required fields
     if (!catalogId || !quantityAvailable || !price || !weightUnit) {
+      console.log("Error: Missing required fields");
       return res.status(400).json({
         success: false,
         message: "All fields are required: catalogId, quantityAvailable, price, weightUnit",
@@ -31,7 +38,10 @@ export const addProduct = async (req, res) => {
       [userId]
     );
 
+    console.log("Farmers query result:", farmers);
+
     if (farmers.length === 0) {
+      console.log("Error: Farmer profile not found for user_id:", userId);
       return res.status(404).json({
         success: false,
         message: "Farmer profile not found",
@@ -39,6 +49,7 @@ export const addProduct = async (req, res) => {
     }
 
     const farmerId = farmers[0].farmer_id;
+    console.log("Farmer ID:", farmerId);
 
     // Check if product already exists for this farmer
     const [existingProducts] = await db.query(
@@ -46,7 +57,10 @@ export const addProduct = async (req, res) => {
       [farmerId, catalogId]
     );
 
+    console.log("Existing products check:", existingProducts);
+
     if (existingProducts.length > 0) {
+      console.log("Error: Product already exists for this farmer");
       return res.status(400).json({
         success: false,
         message: "You have already added this product. Please edit it instead.",
@@ -54,11 +68,22 @@ export const addProduct = async (req, res) => {
     }
 
     // Insert product into farmer_products
+    console.log("Inserting product with values:", {
+      farmerId,
+      catalogId,
+      quantityAvailable,
+      price,
+      weightUnit
+    });
+
     const [result] = await db.query(
       `INSERT INTO farmer_products (farmer_id, catalog_id, quantity_available, price, weight_unit, status)
        VALUES (?, ?, ?, ?, ?, 'active')`,
       [farmerId, catalogId, quantityAvailable, price, weightUnit]
     );
+
+    console.log("=== PRODUCT ADDED SUCCESSFULLY ===");
+    console.log("Farmer Product ID:", result.insertId);
 
     res.status(201).json({
       success: true,
@@ -74,7 +99,11 @@ export const addProduct = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Add product error:", error);
+    console.error("=== ADD PRODUCT ERROR ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Full error:", error);
+
     res.status(500).json({
       success: false,
       message: "Server error while adding product",

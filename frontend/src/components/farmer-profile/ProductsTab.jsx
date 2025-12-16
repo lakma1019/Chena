@@ -96,7 +96,12 @@ export default function ProductsTab() {
         weightUnit: selectedProductDetails.standard_weight
       }
 
+      console.log('=== ADDING PRODUCT ===');
+      console.log('Product Data:', productData);
+
       const response = await productAPI.addFarmerProduct(productData)
+
+      console.log('Add Product Response:', response);
 
       if (response.success) {
         alert('Product added to your inventory successfully!')
@@ -110,9 +115,14 @@ export default function ProductsTab() {
         // Reload products
         await loadFarmerProducts()
         setActiveSubTab('view')
+      } else {
+        alert(response.message || 'Failed to add product. Please try again.')
       }
     } catch (error) {
-      console.error('Failed to add product:', error)
+      console.error('=== ADD PRODUCT ERROR ===');
+      console.error('Error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response);
       alert(error.message || 'Failed to add product. Please try again.')
     }
   }
@@ -317,7 +327,7 @@ export default function ProductsTab() {
                       <span className="font-semibold">Standard Weight:</span> {selectedProductDetails.standard_weight}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-semibold">Suggested Price:</span> Rs. {selectedProductDetails.suggested_price.toFixed(2)}
+                      <span className="font-semibold">Suggested Price:</span> Rs. {selectedProductDetails.suggested_price ? Number(selectedProductDetails.suggested_price).toFixed(2) : '0.00'}
                     </p>
                   </div>
                 </div>
@@ -468,7 +478,7 @@ export default function ProductsTab() {
                       <span className="font-semibold">Weight:</span> {product.weight_unit}
                     </p>
                     <p className="text-lg font-bold text-green-600">
-                      Rs. {parseFloat(product.price).toFixed(2)}
+                      Rs. {product.price ? parseFloat(product.price).toFixed(2) : '0.00'}
                     </p>
                     <p className="text-sm text-gray-600">
                       <span className="font-semibold">Available:</span> {product.quantity_available} units
