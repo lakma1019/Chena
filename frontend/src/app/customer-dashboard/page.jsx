@@ -66,6 +66,17 @@ export default function CustomerDashboard() {
     router.push('/login/customer-login')
   }
 
+  const handleProfileUpdate = async () => {
+    try {
+      const response = await authAPI.getCurrentUser()
+      if (response.success) {
+        setUserData(response.data)
+      }
+    } catch (error) {
+      console.error('Failed to reload user data:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -173,7 +184,7 @@ export default function CustomerDashboard() {
 
         {/* Tab Content */}
         <div className="p-8">
-          {activeTab === 'profile' && <ProfileTab userData={userData} />}
+          {activeTab === 'profile' && <ProfileTab userData={userData} onProfileUpdate={handleProfileUpdate} />}
           {activeTab === 'products' && <ViewProductsTab />}
           {activeTab === 'cart' && <CartTab />}
           {activeTab === 'orders' && <OrdersTab />}

@@ -53,6 +53,35 @@ export default function SignIn({
 
   const handleSignUpChange = (e) => {
     const { name, value, type, checked } = e.target
+
+    // Phone number validation - only allow digits and max 10 characters
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '')
+      if (digitsOnly.length <= 10) {
+        setSignUpData({
+          ...signUpData,
+          [name]: digitsOnly
+        })
+      }
+      return
+    }
+
+    // NIC validation - allow old format (9 digits + V/X) or new format (12 digits)
+    if (name === 'nic') {
+      const upperValue = value.toUpperCase()
+      // Allow only digits and V/X characters
+      const validChars = upperValue.replace(/[^0-9VX]/g, '')
+
+      // Limit to max 12 characters
+      if (validChars.length <= 12) {
+        setSignUpData({
+          ...signUpData,
+          [name]: validChars
+        })
+      }
+      return
+    }
+
     setSignUpData({
       ...signUpData,
       [name]: type === 'checkbox' ? checked : value
@@ -77,6 +106,29 @@ export default function SignIn({
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate email domain
+    const emailLower = signUpData.email.toLowerCase()
+    if (!emailLower.endsWith('@gmail.com') && !emailLower.endsWith('@yahoo.com')) {
+      await showAlert('Email must be a @gmail.com or @yahoo.com address!', 'error')
+      return
+    }
+
+    // Validate phone number
+    if (signUpData.phone.length !== 10) {
+      await showAlert('Phone number must be exactly 10 digits!', 'error')
+      return
+    }
+
+    // Validate NIC format
+    const nicPattern9 = /^[0-9]{9}[VX]$/  // Old format: 9 digits + V or X
+    const nicPattern12 = /^[0-9]{12}$/     // New format: 12 digits
+
+    if (!nicPattern9.test(signUpData.nic) && !nicPattern12.test(signUpData.nic)) {
+      await showAlert('Invalid NIC format! Use old format (e.g., 911042754V) or new format (e.g., 199110402757)', 'error')
+      return
+    }
+
     if (signUpData.password !== signUpData.confirmPassword) {
       await showAlert('Passwords do not match!', 'error')
       return
@@ -191,16 +243,46 @@ export default function SignIn({
                   <input type="text" id="fullName" name="fullName" value={signUpData.fullName} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Enter your full name" />
                 </div>
                 <div>
-                  <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                  <input type="email" id="signupEmail" name="email" value={signUpData.email} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Enter your email" />
+                  <label htmlFor="signupEmail" className="block text-sm font-medium text-gray-700 mb-2">Email Address (@gmail.com or @yahoo.com)</label>
+                  <input
+                    type="email"
+                    id="signupEmail"
+                    name="email"
+                    value={signUpData.email}
+                    onChange={handleSignUpChange}
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50"
+                    placeholder="example@gmail.com or example@yahoo.com"
+                  />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input type="tel" id="phone" name="phone" value={signUpData.phone} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Enter your phone number" />
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number (10 digits)</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={signUpData.phone}
+                    onChange={handleSignUpChange}
+                    required
+                    pattern="[0-9]{10}"
+                    maxLength="10"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50"
+                    placeholder="Enter 10 digit phone number"
+                  />
                 </div>
                 <div>
-                  <label htmlFor="nic" className="block text-sm font-medium text-gray-700 mb-2">NIC Number</label>
-                  <input type="text" id="nic" name="nic" value={signUpData.nic} onChange={handleSignUpChange} required className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50" placeholder="Enter your NIC number" />
+                  <label htmlFor="nic" className="block text-sm font-medium text-gray-700 mb-2">NIC Number (9 digits+V or 12 digits)</label>
+                  <input
+                    type="text"
+                    id="nic"
+                    name="nic"
+                    value={signUpData.nic}
+                    onChange={handleSignUpChange}
+                    required
+                    maxLength="12"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-gray-50"
+                    placeholder="e.g., 911042754V or 199110402757"
+                  />
                 </div>
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Address</label>

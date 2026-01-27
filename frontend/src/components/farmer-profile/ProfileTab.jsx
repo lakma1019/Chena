@@ -58,6 +58,30 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
 
   const handleSave = async () => {
     try {
+      // Validate email domain
+      if (editData.email) {
+        const emailLower = editData.email.toLowerCase()
+        if (!emailLower.endsWith('@gmail.com') && !emailLower.endsWith('@yahoo.com')) {
+          await showAlert('Email must be a @gmail.com or @yahoo.com address!', 'error')
+          return
+        }
+      }
+
+      // Validate phone number
+      if (editData.phone && editData.phone.length !== 10) {
+        await showAlert('Phone number must be exactly 10 digits!', 'error')
+        return
+      }
+
+      // Validate NIC format
+      const nicPattern9 = /^[0-9]{9}[VX]$/  // Old format: 9 digits + V or X
+      const nicPattern12 = /^[0-9]{12}$/     // New format: 12 digits
+
+      if (editData.nic && !nicPattern9.test(editData.nic) && !nicPattern12.test(editData.nic)) {
+        await showAlert('Invalid NIC format! Use old format (e.g., 911042754V) or new format (e.g., 199110402757)', 'error')
+        return
+      }
+
       console.log('Sending profile update:', {
         fullName: editData.fullName,
         phone: editData.phone,
@@ -114,6 +138,35 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Phone number validation - only allow digits and max 10 characters
+    if (name === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '')
+      if (digitsOnly.length <= 10) {
+        setEditData({
+          ...editData,
+          [name]: digitsOnly
+        })
+      }
+      return
+    }
+
+    // NIC validation - allow old format (9 digits + V/X) or new format (12 digits)
+    if (name === 'nic') {
+      const upperValue = value.toUpperCase()
+      // Allow only digits and V/X characters
+      const validChars = upperValue.replace(/[^0-9VX]/g, '')
+
+      // Limit to max 12 characters
+      if (validChars.length <= 12) {
+        setEditData({
+          ...editData,
+          [name]: validChars
+        })
+      }
+      return
+    }
+
     setEditData({
       ...editData,
       [name]: value
@@ -192,7 +245,7 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address (@gmail.com or @yahoo.com)</label>
             {isEditing ? (
               <input
                 type="email"
@@ -200,6 +253,7 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
                 value={editData.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                placeholder="example@gmail.com or example@yahoo.com"
               />
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.email}</p>
@@ -207,14 +261,17 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number (10 digits)</label>
             {isEditing ? (
               <input
                 type="tel"
                 name="phone"
                 value={editData.phone}
                 onChange={handleChange}
+                pattern="[0-9]{10}"
+                maxLength="10"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                placeholder="Enter 10 digit phone number"
               />
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.phone}</p>
@@ -222,14 +279,16 @@ export default function ProfileTab({ userData, onProfileUpdate }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">NIC Number</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">NIC Number (9 digits+V or 12 digits)</label>
             {isEditing ? (
               <input
                 type="text"
                 name="nic"
                 value={editData.nic}
                 onChange={handleChange}
+                maxLength="12"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                placeholder="e.g., 911042754V or 199110402757"
               />
             ) : (
               <p className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 font-medium">{profileData.nic}</p>

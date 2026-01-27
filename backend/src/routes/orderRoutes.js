@@ -4,6 +4,7 @@ import {
   getCustomerOrders,
   getOrderDetails,
 } from "../controllers/orderController.js";
+import { getAvailableTransportProviders } from "../controllers/farmerOrderController.js";
 import { authenticateToken, authorizeUserType } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -20,6 +21,9 @@ router.get("/", authenticateToken, authorizeUserType(["customer"]), getCustomerO
 
 // GET /api/orders/:orderId - Get specific order details
 router.get("/:orderId", authenticateToken, authorizeUserType(["customer"]), getOrderDetails);
+
+// GET /api/orders/transport-providers/available - Get all available transport providers for customer checkout
+router.get("/transport-providers/available", authenticateToken, authorizeUserType(["customer"]), getAvailableTransportProviders);
 
 export default router;
 

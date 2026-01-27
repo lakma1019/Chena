@@ -294,6 +294,161 @@ export const orderAPI = {
 };
 
 // ============================================
+// Farmer Order API
+// ============================================
+export const farmerOrderAPI = {
+  // Get all orders containing farmer's products
+  getFarmerOrders: async () => {
+    return apiRequest('/api/farmer/orders', {
+      method: 'GET',
+    });
+  },
+
+  // Get farmer analytics and sales reports
+  getFarmerAnalytics: async () => {
+    return apiRequest('/api/farmer/analytics', {
+      method: 'GET',
+    });
+  },
+
+  // Get available transport providers with vehicles
+  getTransportProviders: async () => {
+    return apiRequest('/api/farmer/transport-providers', {
+      method: 'GET',
+    });
+  },
+
+  // Assign transport provider to an order
+  assignTransport: async (orderId, transportData) => {
+    return apiRequest(`/api/farmer/orders/${orderId}/assign-transport`, {
+      method: 'POST',
+      body: JSON.stringify(transportData),
+    });
+  },
+};
+
+// ============================================
+// Transport Provider API
+// ============================================
+export const transportAPI = {
+  // Add a new vehicle
+  addVehicle: async (vehicleData) => {
+    return apiRequest('/api/transport/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(vehicleData),
+    });
+  },
+
+  // Get all vehicles for transport provider
+  getVehicles: async () => {
+    return apiRequest('/api/transport/vehicles', {
+      method: 'GET',
+    });
+  },
+
+  // Get all deliveries assigned to transport provider
+  getDeliveries: async () => {
+    return apiRequest('/api/transport/deliveries', {
+      method: 'GET',
+    });
+  },
+
+  // Get specific delivery details
+  getDeliveryDetails: async (deliveryId) => {
+    return apiRequest(`/api/transport/deliveries/${deliveryId}`, {
+      method: 'GET',
+    });
+  },
+
+  // Update delivery status and notes
+  updateDeliveryStatus: async (deliveryId, statusData) => {
+    return apiRequest(`/api/transport/deliveries/${deliveryId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(statusData),
+    });
+  },
+};
+
+// ============================================
+// Admin API
+// ============================================
+export const adminAPI = {
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    return apiRequest('/api/admin/dashboard/stats', {
+      method: 'GET',
+    });
+  },
+
+  // Get all users with filters
+  getAllUsers: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.userType) params.append('userType', filters.userType);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.search) params.append('search', filters.search);
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/api/admin/users?${queryString}` : '/api/admin/users';
+
+    return apiRequest(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  // Update user status
+  updateUserStatus: async (userId, isActive) => {
+    return apiRequest(`/api/admin/users/${userId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ isActive }),
+    });
+  },
+
+  // Update user profile
+  updateUserProfile: async (userId, profileData) => {
+    return apiRequest(`/api/admin/users/${userId}/profile`, {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
+
+  // Delete user
+  deleteUser: async (userId) => {
+    return apiRequest(`/api/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get all products
+  getAllProducts: async () => {
+    return apiRequest('/api/admin/products', {
+      method: 'GET',
+    });
+  },
+
+  // Get all orders with filters
+  getAllOrders: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.search) params.append('search', filters.search);
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/api/admin/orders?${queryString}` : '/api/admin/orders';
+
+    return apiRequest(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  // Update order status
+  updateOrderStatus: async (orderId, status) => {
+    return apiRequest(`/api/admin/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// ============================================
 // Export API base URL for other uses
 // ============================================
 export { API_BASE_URL };

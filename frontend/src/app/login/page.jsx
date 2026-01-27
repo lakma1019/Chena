@@ -73,6 +73,17 @@ export default function LoginPage() {
             </div>
           </Link>
         ))}
+
+        {/* Admin Login Link */}
+        <div className="text-center pt-6">
+          <Link
+            href="/login/admin-login"
+            className="inline-flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
+          >
+            <span className="text-xl">🔐</span>
+            <span className="font-semibold">Admin Login</span>
+          </Link>
+        </div>
       </div>
     </div>
   )

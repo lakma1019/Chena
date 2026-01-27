@@ -5,6 +5,9 @@ import { db } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import farmerOrderRoutes from "./routes/farmerOrderRoutes.js";
+import transportRoutes from "./routes/transportRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -21,6 +24,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/farmer", farmerOrderRoutes);
+app.use("/api/transport", transportRoutes);
 
 // Sample: Get all farmers
 app.get("/farmers", async (req, res) => {

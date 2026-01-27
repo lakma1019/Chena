@@ -618,46 +618,78 @@ export const updateProfile = async (req, res) => {
         }
       }
     } else if (userType === "customer") {
-      const customerUpdates = [];
-      const customerValues = [];
+      // Check if customer record exists
+      const [existingCustomer] = await db.query(
+        "SELECT customer_id FROM customers WHERE user_id = ?",
+        [userId]
+      );
 
-      if (city !== undefined && city !== null && city !== '') {
-        customerUpdates.push("city = ?");
-        customerValues.push(city);
-      }
-
-      if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
-        customerUpdates.push("postal_code = ?");
-        customerValues.push(postalCode);
-      }
-
-      if (customerUpdates.length > 0) {
-        customerValues.push(userId);
+      if (existingCustomer.length === 0) {
+        // Create customer record if it doesn't exist
+        console.log("Creating new customer record for user:", userId);
         await db.query(
-          `UPDATE customers SET ${customerUpdates.join(", ")} WHERE user_id = ?`,
-          customerValues
+          `INSERT INTO customers (user_id, city, postal_code) VALUES (?, ?, ?)`,
+          [userId, city || null, postalCode || null]
         );
+      } else {
+        // Update existing customer record
+        const customerUpdates = [];
+        const customerValues = [];
+
+        if (city !== undefined && city !== null && city !== '') {
+          customerUpdates.push("city = ?");
+          customerValues.push(city);
+        }
+
+        if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
+          customerUpdates.push("postal_code = ?");
+          customerValues.push(postalCode);
+        }
+
+        if (customerUpdates.length > 0) {
+          customerValues.push(userId);
+          await db.query(
+            `UPDATE customers SET ${customerUpdates.join(", ")} WHERE user_id = ?`,
+            customerValues
+          );
+        }
       }
     } else if (userType === "transport") {
-      const transportUpdates = [];
-      const transportValues = [];
+      // Check if transport provider record exists
+      const [existingTransport] = await db.query(
+        "SELECT transport_id FROM transport_providers WHERE user_id = ?",
+        [userId]
+      );
 
-      if (city !== undefined && city !== null && city !== '') {
-        transportUpdates.push("city = ?");
-        transportValues.push(city);
-      }
-
-      if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
-        transportUpdates.push("postal_code = ?");
-        transportValues.push(postalCode);
-      }
-
-      if (transportUpdates.length > 0) {
-        transportValues.push(userId);
+      if (existingTransport.length === 0) {
+        // Create transport provider record if it doesn't exist
+        console.log("Creating new transport provider record for user:", userId);
         await db.query(
-          `UPDATE transport_providers SET ${transportUpdates.join(", ")} WHERE user_id = ?`,
-          transportValues
+          `INSERT INTO transport_providers (user_id, city, postal_code) VALUES (?, ?, ?)`,
+          [userId, city || null, postalCode || null]
         );
+      } else {
+        // Update existing transport provider record
+        const transportUpdates = [];
+        const transportValues = [];
+
+        if (city !== undefined && city !== null && city !== '') {
+          transportUpdates.push("city = ?");
+          transportValues.push(city);
+        }
+
+        if (postalCode !== undefined && postalCode !== null && postalCode !== '') {
+          transportUpdates.push("postal_code = ?");
+          transportValues.push(postalCode);
+        }
+
+        if (transportUpdates.length > 0) {
+          transportValues.push(userId);
+          await db.query(
+            `UPDATE transport_providers SET ${transportUpdates.join(", ")} WHERE user_id = ?`,
+            transportValues
+          );
+        }
       }
     }
 

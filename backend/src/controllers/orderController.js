@@ -16,7 +16,12 @@ export const createOrder = async (req, res) => {
       deliveryAddress,
       deliveryCity,
       deliveryPostalCode,
+      distanceFromColombo,
+      transportId,
+      vehicleId,
+      deliveryFee,
       paymentMethod,
+      paymentType, // Original payment type (Card, Stripe, Cash on Delivery)
       stripePaymentMethodId,
     } = req.body;
 
@@ -25,7 +30,11 @@ export const createOrder = async (req, res) => {
       userType,
       paymentMethod,
       cartItemsCount: cartItems?.length,
-      hasStripePaymentMethod: !!stripePaymentMethodId
+      hasStripePaymentMethod: !!stripePaymentMethodId,
+      transportId,
+      vehicleId,
+      distanceFromColombo,
+      deliveryFee
     });
 
     // Validate user is a customer
@@ -54,6 +63,15 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    // Validate transport and distance (required for new workflow)
+    if (!transportId || !vehicleId || !distanceFromColombo || !deliveryFee) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "Transport provider, vehicle, distance, and delivery fee are required",
+      });
+    }
+
     // Get customer_id from user_id
     const [customers] = await connection.query(
       "SELECT customer_id FROM customers WHERE user_id = ?",
@@ -72,7 +90,8 @@ export const createOrder = async (req, res) => {
 
     // Calculate order totals
     let subtotal = 0;
-    const deliveryFee = 200.00; // Fixed delivery fee
+    // Use delivery fee from frontend (calculated based on distance × price_per_km)
+    const finalDeliveryFee = parseFloat(deliveryFee) || 0;
 
     // Validate cart items and calculate subtotal
     for (const item of cartItems) {
@@ -81,7 +100,7 @@ export const createOrder = async (req, res) => {
       subtotal += price * quantity;
     }
 
-    const totalAmount = subtotal + deliveryFee;
+    const totalAmount = subtotal + finalDeliveryFee;
     const platformFee = subtotal * 0.05; // 5% platform commission
 
     // Generate order number
@@ -90,8 +109,8 @@ export const createOrder = async (req, res) => {
     // Insert order
     const [orderResult] = await connection.query(
       `INSERT INTO orders (
-        order_number, customer_id, delivery_address, delivery_city, 
-        delivery_postal_code, subtotal, delivery_fee, total_amount, 
+        order_number, customer_id, delivery_address, delivery_city,
+        delivery_postal_code, subtotal, delivery_fee, total_amount,
         payment_method, payment_status, order_status
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -101,10 +120,10 @@ export const createOrder = async (req, res) => {
         deliveryCity || null,
         deliveryPostalCode || null,
         subtotal,
-        deliveryFee,
+        finalDeliveryFee,
         totalAmount,
         paymentMethod,
-        (paymentMethod === 'Stripe' || paymentMethod === 'Online Payment') ? 'paid' : 'pending',
+        paymentMethod === 'Online Payment' ? 'paid' : 'pending',
         'pending'
       ]
     );
@@ -143,10 +162,90 @@ export const createOrder = async (req, res) => {
       farmerTotals[item.farmerId] += itemSubtotal;
     }
 
+    // ============================================
+    // CREATE DELIVERY RECORD IMMEDIATELY
+    // Customer has already selected transport provider during checkout
+    // ============================================
+    const deliveryNumber = `DEL${Date.now()}`;
+
+    await connection.query(
+      `INSERT INTO deliveries (
+        delivery_number, order_id, transport_id, vehicle_id,
+        pickup_address, delivery_address, distance_km, delivery_fee,
+        delivery_status, assigned_date
+      ) VALUES (?, ?, ?, ?, 'Colombo', ?, ?, ?, 'assigned', CURRENT_TIMESTAMP)`,
+      [
+        deliveryNumber,
+        orderId,
+        transportId,
+        vehicleId,
+        deliveryAddress,
+        parseFloat(distanceFromColombo),
+        finalDeliveryFee
+      ]
+    );
+
+    console.log(`✅ Delivery record created: ${deliveryNumber} for order ${orderNumber} - Transport ID: ${transportId}, Vehicle ID: ${vehicleId}`);
+
     // Create transaction record if online payment
     let stripePaymentIntentId = null;
 
-    if (paymentMethod === 'Stripe' && stripePaymentMethodId) {
+    // Handle Card Payment (Manual Card Entry)
+    if (paymentType === 'Card' && stripePaymentMethodId) {
+      // Create transaction record for card payment
+      const transactionNumber = `TXN${Date.now()}`;
+
+      const [transactionResult] = await connection.query(
+        `INSERT INTO transactions (
+          transaction_number, order_id, customer_id, payment_gateway,
+          gateway_transaction_id, total_amount, products_amount,
+          delivery_fee, platform_fee, transaction_status,
+          payment_method_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          transactionNumber,
+          orderId,
+          customerId,
+          'Card Payment',
+          stripePaymentMethodId,
+          totalAmount,
+          subtotal,
+          finalDeliveryFee,
+          platformFee,
+          'completed',
+          'Credit/Debit Card'
+        ]
+      );
+
+      const transactionId = transactionResult.insertId;
+
+      // Create farmer payment splits
+      for (const [farmerId, farmerSubtotal] of Object.entries(farmerTotals)) {
+        const commission = farmerSubtotal * 0.05; // 5% commission
+        const netAmount = farmerSubtotal - commission;
+
+        await connection.query(
+          `INSERT INTO farmer_transaction_splits (
+            transaction_id, order_id, farmer_id, products_subtotal,
+            platform_commission, farmer_net_amount, payout_status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            transactionId,
+            orderId,
+            parseInt(farmerId),
+            farmerSubtotal,
+            commission,
+            netAmount,
+            'pending'
+          ]
+        );
+      }
+
+      stripePaymentIntentId = stripePaymentMethodId;
+    }
+
+    // Handle Stripe Payment
+    if (paymentType === 'Stripe' && stripePaymentMethodId) {
       // Check if Stripe is configured
       if (!stripe) {
         await connection.rollback();
@@ -200,7 +299,7 @@ export const createOrder = async (req, res) => {
             paymentIntent.id,
             totalAmount,
             subtotal,
-            deliveryFee,
+            finalDeliveryFee,
             platformFee,
             'completed',
             'Credit/Debit Card'
@@ -244,16 +343,19 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Order created successfully",
+      message: "Order created successfully with transport assignment",
       data: {
         orderId,
         orderNumber,
         subtotal,
-        deliveryFee,
+        deliveryFee: finalDeliveryFee,
         totalAmount,
         paymentMethod,
-        paymentStatus: (paymentMethod === 'Stripe' || paymentMethod === 'Online Payment') ? 'paid' : 'pending',
+        paymentStatus: paymentMethod === 'Online Payment' ? 'paid' : 'pending',
         stripePaymentIntentId,
+        transportAssigned: true,
+        transportId,
+        vehicleId,
       },
     });
   } catch (error) {

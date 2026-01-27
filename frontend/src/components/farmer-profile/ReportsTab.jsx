@@ -2,28 +2,68 @@
 
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { farmerOrderAPI } from '@/services/api'
 
 export default function ReportsTab() {
-  // TODO: Fetch real past orders from backend API when implemented
-  // For now, initialize with empty array to avoid showing fake data
-  const [pastOrders] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Calculate statistics
-  const totalRevenue = pastOrders.reduce((sum, order) => sum + order.totalAmount, 0)
-  const totalOrders = pastOrders.length
-  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  useEffect(() => {
+    loadAnalytics()
+  }, [])
 
-  // Sales by date data for line chart (empty until real data is available)
-  const salesByDate = []
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await farmerOrderAPI.getFarmerAnalytics()
 
-  // Product sales data for bar chart (empty until real data is available)
-  const productSales = []
+      if (response.success) {
+        setAnalyticsData(response.data)
+      } else {
+        setError(response.message || 'Failed to load analytics')
+      }
+    } catch (error) {
+      console.error('Failed to load analytics:', error)
+      setError('Failed to load analytics data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // Customer distribution for pie chart (empty until real data is available)
-  const customerData = []
+  // Extract data from analytics or use defaults
+  const totalRevenue = analyticsData?.stats?.totalRevenue || 0
+  const totalOrders = analyticsData?.stats?.totalOrders || 0
+  const averageOrderValue = analyticsData?.stats?.averageOrderValue || 0
+  const salesByDate = analyticsData?.salesTrend || []
+  const productSales = analyticsData?.productPerformance || []
+  const customerData = analyticsData?.customerDistribution || []
+  const pastOrders = analyticsData?.pastOrders || []
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <p className="text-red-600 font-semibold">{error}</p>
+        <button
+          onClick={loadAnalytics}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -64,130 +104,160 @@ export default function ReportsTab() {
         {/* Sales Trend Chart */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Sales Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={salesByDate}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#10b981" strokeWidth={3} name="Sales (Rs.)" />
-            </LineChart>
-          </ResponsiveContainer>
+          {salesByDate.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={salesByDate}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="sales" stroke="#10b981" strokeWidth={3} name="Sales (Rs.)" />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <p>No sales data available yet</p>
+            </div>
+          )}
         </div>
 
         {/* Product Performance Chart */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Product Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={productSales}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="product" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="revenue" fill="#10b981" name="Revenue (Rs.)" />
-            </BarChart>
-          </ResponsiveContainer>
+          {productSales.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={productSales}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="product" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="revenue" fill="#10b981" name="Revenue (Rs.)" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <p>No product sales data available yet</p>
+            </div>
+          )}
         </div>
 
         {/* Customer Distribution Chart */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Revenue by Customer</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={customerData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {customerData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {customerData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={customerData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {customerData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <p>No customer data available yet</p>
+            </div>
+          )}
         </div>
 
         {/* Top Products Table */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Top Selling Products</h3>
-          <div className="space-y-3">
-            {productSales.map((product, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                    index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-600'
-                  }`}>
-                    {index + 1}
+          {productSales.length > 0 ? (
+            <div className="space-y-3">
+              {productSales.map((product, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                      index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-600'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{product.product}</p>
+                      <p className="text-sm text-gray-600">{product.quantity} units sold</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">{product.product}</p>
-                    <p className="text-sm text-gray-600">{product.quantity} units sold</p>
-                  </div>
+                  <p className="font-bold text-green-600">Rs. {product.revenue.toFixed(2)}</p>
                 </div>
-                <p className="font-bold text-green-600">Rs. {product.revenue.toFixed(2)}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400">
+              <p>No product sales data available yet</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Past Orders Table */}
       <div className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-lg">
         <h3 className="text-xl font-bold text-gray-800 mb-4">Past Orders History</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Order ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Customer</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Products</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Order Date</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Completed</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payment</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {pastOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-semibold text-gray-800">{order.id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{order.customerName}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {order.products.map(p => p.name).join(', ')}
+        {pastOrders.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Order ID</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Customer</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Products</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Order Date</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Completed</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payment</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {pastOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-800">{order.id}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{order.customerName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {order.products.map(p => p.name).join(', ')}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {new Date(order.orderDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {order.completedDate ? new Date(order.completedDate).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{order.paymentMethod}</td>
+                    <td className="px-4 py-3 text-sm font-bold text-green-600 text-right">
+                      Rs. {order.totalAmount.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50">
+                <tr>
+                  <td colSpan="6" className="px-4 py-3 text-right text-sm font-bold text-gray-800">
+                    Total Revenue:
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {new Date(order.orderDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {new Date(order.completedDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{order.paymentMethod}</td>
-                  <td className="px-4 py-3 text-sm font-bold text-green-600 text-right">
-                    Rs. {order.totalAmount.toFixed(2)}
+                  <td className="px-4 py-3 text-right text-lg font-bold text-green-600">
+                    Rs. {totalRevenue.toFixed(2)}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot className="bg-gray-50">
-              <tr>
-                <td colSpan="6" className="px-4 py-3 text-right text-sm font-bold text-gray-800">
-                  Total Revenue:
-                </td>
-                <td className="px-4 py-3 text-right text-lg font-bold text-green-600">
-                  Rs. {totalRevenue.toFixed(2)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+              </tfoot>
+            </table>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32 text-gray-400">
+            <p>No completed orders yet</p>
+          </div>
+        )}
       </div>
     </div>
   )

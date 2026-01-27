@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import ProfileTab from '@/components/transport-profile/ProfileTab'
-import DeliveriesTab from '@/components/transport-profile/DeliveriesTab'
+import OverviewTab from '@/components/admin-dashboard/OverviewTab'
+import UsersTab from '@/components/admin-dashboard/UsersTab'
+import ProductsTab from '@/components/admin-dashboard/ProductsTab'
+import OrdersTab from '@/components/admin-dashboard/OrdersTab'
 import { authAPI, tokenManager } from '@/services/api'
 
-export default function TransportDashboard() {
+export default function AdminDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState('overview')
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -19,8 +21,8 @@ export default function TransportDashboard() {
       const accessToken = tokenManager.getAccessToken()
       const userType = localStorage.getItem('userType')
 
-      if (!accessToken || userType !== 'transport') {
-        router.push('/login/transport-login')
+      if (!accessToken || userType !== 'admin') {
+        router.push('/login/admin-login')
         return
       }
 
@@ -34,7 +36,7 @@ export default function TransportDashboard() {
         console.error('Failed to fetch user data:', error)
         // Token might be invalid, redirect to login
         tokenManager.clearTokens()
-        router.push('/login/transport-login')
+        router.push('/login/admin-login')
       } finally {
         setLoading(false)
       }
@@ -45,25 +47,14 @@ export default function TransportDashboard() {
 
   const handleLogout = () => {
     authAPI.logout()
-    router.push('/login/transport-login')
-  }
-
-  const handleProfileUpdate = async () => {
-    try {
-      const response = await authAPI.getCurrentUser()
-      if (response.success) {
-        setUserData(response.data)
-      }
-    } catch (error) {
-      console.error('Failed to reload user data:', error)
-    }
+    router.push('/login/admin-login')
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -71,26 +62,28 @@ export default function TransportDashboard() {
   }
 
   const menuItems = [
-    { id: 'profile', name: 'Profile', icon: '👤' },
-    { id: 'deliveries', name: 'Deliveries', icon: '🚚' }
+    { id: 'overview', name: 'Overview', icon: '📊' },
+    { id: 'users', name: 'Users', icon: '👥' },
+    { id: 'products', name: 'Products', icon: '📦' },
+    { id: 'orders', name: 'Orders', icon: '🛒' }
   ]
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-yellow-50 to-amber-50 text-gray-800 transition-all duration-300 flex flex-col shadow-xl`}>
+      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-purple-100 to-violet-100 text-gray-800 transition-all duration-300 flex flex-col shadow-xl`}>
         {/* Header */}
-        <div className="p-6 border-b border-yellow-200">
+        <div className="p-6 border-b border-red-200">
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <div>
-                <h2 className="text-xl font-bold text-yellow-700">Transport Portal</h2>
-                <p className="text-sm text-yellow-600">Chena Platform</p>
+                <h2 className="text-xl font-bold text-black-700">Admin Portal</h2>
+                <p className="text-sm text-black-600">Chena Platform</p>
               </div>
             )}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-yellow-100 rounded-lg transition-colors text-yellow-700"
+              className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-700"
             >
               {isSidebarOpen ? '◀' : '▶'}
             </button>
@@ -104,16 +97,14 @@ export default function TransportDashboard() {
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center ${isSidebarOpen ? 'justify-start' : 'justify-center'} p-3 rounded-lg transition-all ${
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
                     activeTab === item.id
-                      ? 'bg-gradient-to-r from-yellow-600 to-amber-600 text-white shadow-lg'
-                      : 'hover:bg-yellow-100 text-gray-700'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'hover:bg-purple-100 text-gray-700'
                   }`}
                 >
                   <span className="text-2xl">{item.icon}</span>
-                  {isSidebarOpen && (
-                    <span className="ml-3 font-semibold">{item.name}</span>
-                  )}
+                  {isSidebarOpen && <span className="font-semibold">{item.name}</span>}
                 </button>
               </li>
             ))}
@@ -121,15 +112,13 @@ export default function TransportDashboard() {
         </nav>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-yellow-200">
+        <div className="p-4 border-t border-red-200">
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${isSidebarOpen ? 'justify-start' : 'justify-center'} p-3 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-md`}
+            className="w-full flex items-center space-x-3 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all shadow-lg"
           >
             <span className="text-2xl">🚪</span>
-            {isSidebarOpen && (
-              <span className="ml-3 font-semibold">Logout</span>
-            )}
+            {isSidebarOpen && <span className="font-semibold">Logout</span>}
           </button>
         </div>
       </aside>
@@ -137,21 +126,21 @@ export default function TransportDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
         {/* Top Bar */}
-        <div className="bg-white shadow-md p-6 border-b-4 border-yellow-600">
+        <div className="bg-white shadow-md p-6 border-b-4 border-red-600">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
                 {menuItems.find(item => item.id === activeTab)?.name}
               </h1>
-              <p className="text-gray-600 mt-1">Welcome to your transport provider dashboard</p>
+              <p className="text-gray-600 mt-1">Welcome to the admin dashboard</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Logged in as</p>
                 <p className="font-semibold text-gray-800">{userData?.email || 'Loading...'}</p>
               </div>
-              <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {userData?.fullName?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                {userData?.fullName?.charAt(0).toUpperCase() || 'A'}
               </div>
             </div>
           </div>
@@ -159,8 +148,10 @@ export default function TransportDashboard() {
 
         {/* Tab Content */}
         <div className="p-8">
-          {activeTab === 'profile' && <ProfileTab userData={userData} onProfileUpdate={handleProfileUpdate} />}
-          {activeTab === 'deliveries' && <DeliveriesTab />}
+          {activeTab === 'overview' && <OverviewTab />}
+          {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'products' && <ProductsTab />}
+          {activeTab === 'orders' && <OrdersTab />}
         </div>
       </main>
     </div>

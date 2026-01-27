@@ -1,5 +1,5 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Generate and download PDF invoice for an order
@@ -7,41 +7,40 @@ import 'jspdf-autotable';
  * @param {Object} customerInfo - Customer information
  */
 export const generateInvoice = (order, customerInfo = {}) => {
-  const doc = new jsPDF();
-  
-  // Colors
-  const primaryColor = [34, 139, 34]; // Green for agriculture theme
-  const secondaryColor = [100, 100, 100];
-  const textColor = [50, 50, 50];
-  
-  // Page width
-  const pageWidth = doc.internal.pageSize.width;
+  try {
+    console.log('Generating invoice for order:', order);
+
+    const doc = new jsPDF();
+
+    // Colors
+    const primaryColor = [34, 139, 34]; // Green for agriculture theme
+    const secondaryColor = [100, 100, 100];
+    const textColor = [50, 50, 50];
+
+    // Page width
+    const pageWidth = doc.internal.pageSize.width;
   
   // ============================================
   // HEADER - Company Logo & Name
   // ============================================
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
-
-  // Leaf icon (simple decoration)
-  doc.setFillColor(255, 255, 255);
-  doc.circle(pageWidth / 2 - 35, 15, 3, 'F');
 
   // Company Name
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(32);
   doc.setFont('helvetica', 'bold');
-  doc.text('🌾 CHENA', pageWidth / 2, 20, { align: 'center' });
+  doc.text('CHENA', pageWidth / 2, 20, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text('Agricultural Marketplace Platform', pageWidth / 2, 30, { align: 'center' });
-  doc.text('Fresh from Farm to Your Table 🚜', pageWidth / 2, 38, { align: 'center' });
+  doc.text('Fresh from Farm to Your Table', pageWidth / 2, 38, { align: 'center' });
   
   // ============================================
   // INVOICE TITLE
   // ============================================
-  doc.setTextColor(...textColor);
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.text('INVOICE', pageWidth / 2, 60, { align: 'center' });
@@ -64,7 +63,8 @@ export const generateInvoice = (order, customerInfo = {}) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Order Date:', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.text(new Date(order.created_at).toLocaleDateString('en-US', {
+  const orderDate = order.order_date || order.created_at || new Date();
+  doc.text(new Date(orderDate).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -80,9 +80,13 @@ export const generateInvoice = (order, customerInfo = {}) => {
   doc.setFont('helvetica', 'bold');
   doc.text('Payment Status:', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(order.payment_status === 'paid' ? [34, 139, 34] : [255, 140, 0]);
+  if (order.payment_status === 'paid') {
+    doc.setTextColor(34, 139, 34);
+  } else {
+    doc.setTextColor(255, 140, 0);
+  }
   doc.text((order.payment_status || 'pending').toUpperCase(), 60, yPos);
-  doc.setTextColor(...textColor);
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   
   // Right side - Delivery Info
   yPos = 70;
@@ -111,20 +115,20 @@ export const generateInvoice = (order, customerInfo = {}) => {
     `Rs. ${parseFloat(item.subtotal || 0).toFixed(2)}`
   ]) || [];
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [['Product', 'Farmer', 'Quantity', 'Unit Price', 'Subtotal']],
     body: tableData,
     theme: 'striped',
     headStyles: {
-      fillColor: primaryColor,
+      fillColor: [primaryColor[0], primaryColor[1], primaryColor[2]],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       fontSize: 10
     },
     bodyStyles: {
       fontSize: 9,
-      textColor: textColor
+      textColor: [textColor[0], textColor[1], textColor[2]]
     },
     columnStyles: {
       0: { cellWidth: 50 },
@@ -135,11 +139,13 @@ export const generateInvoice = (order, customerInfo = {}) => {
     },
     margin: { left: 20, right: 20 }
   });
-  
+
   // ============================================
   // TOTALS
   // ============================================
-  yPos = doc.lastAutoTable.finalY + 10;
+  // Get the Y position after the table
+  const finalY = (doc).lastAutoTable?.finalY || yPos + 50;
+  yPos = finalY + 10;
   
   const totalsX = pageWidth - 70;
   
@@ -168,10 +174,10 @@ export const generateInvoice = (order, customerInfo = {}) => {
   // FOOTER
   // ============================================
   const footerY = doc.internal.pageSize.height - 20;
-  
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
-  doc.setTextColor(...secondaryColor);
+  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
   doc.text('Thank you for your order!', pageWidth / 2, footerY, { align: 'center' });
   doc.text('For any queries, contact us at support@chena.lk', pageWidth / 2, footerY + 5, { align: 'center' });
   
@@ -180,5 +186,11 @@ export const generateInvoice = (order, customerInfo = {}) => {
   // ============================================
   const fileName = `Invoice_${order.order_number || 'Order'}_${new Date().getTime()}.pdf`;
   doc.save(fileName);
+
+  console.log('Invoice generated successfully:', fileName);
+  } catch (error) {
+    console.error('Error generating invoice:', error);
+    throw error;
+  }
 };
 
