@@ -31,3 +31,7 @@ yarn-error.log*
 # typescript
 *.tsbuild info
 
+# environment variables
+.env
+.env.*
+backend/.env
