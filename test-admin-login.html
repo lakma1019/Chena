@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin Login Test</h1>
+        <p>This page tests the admin login flow step by step.</p>
+        
+        <button onclick="testLogin()">1. Test Login API</button>
+        <button onclick="testGetCurrentUser()">2. Test Get Current User</button>
+        <button onclick="testDashboardStats()">3. Test Dashboard Stats</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const resultDiv = document.getElementById('result');
+
+        function showResult(message, type = 'info') {
+            resultDiv.className = type;
+            resultDiv.textContent = message;
+        }
+
+        async function testLogin() {
+            try {
+                showResult('Testing login...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gmail.com',
+                        password: 'admin@123',
+                        userType: 'admin'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store tokens
+                    localStorage.setItem('accessToken', data.accessToken);
+                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem('userData', JSON.stringify(data.data));
+                    localStorage.setItem('userType', 'admin');
+                    
+                    showResult(
+                        '✅ LOGIN SUCCESSFUL!\n\n' +
+                        'Response:\n' + JSON.stringify(data, null, 2) +
+                        '\n\nTokens stored in localStorage.' +
+                        '\n\nNow click "2. Test Get Current User"',
+                        'success'
+                    );
+                } else {
+                    showResult('❌ LOGIN FAILED:\n\n' + JSON.stringify(data, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('❌ ERROR:\n\n' + error.message, 'error');
+            }
+        }
+
+        async function testGetCurrentUser() {
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                
+                if (!accessToken) {
+                    showResult('❌ No access token found. Please login first.', 'error');
+                    return;
+                }
+
+                showResult('Testing getCurrentUser...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(
+                        '✅ GET CURRENT USER SUCCESSFUL!\n\n' +
+                        'Response:\n' + JSON.stringify(data, null, 2) +
+                        '\n\nNow click "3. Test Dashboard Stats"',
+                        'success'
+                    );
+                } else {
+                    showResult('❌ GET CURRENT USER FAILED:\n\n' + JSON.stringify(data, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('❌ ERROR:\n\n' + error.message, 'error');
+            }
+        }
+
+        async function testDashboardStats() {
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                
+                if (!accessToken) {
+                    showResult('❌ No access token found. Please login first.', 'error');
+                    return;
+                }
+
+                showResult('Testing dashboard stats...', 'info');
+                
+                const response = await fetch(`${API_URL}/api/admin/dashboard/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(
+                        '✅ DASHBOARD STATS SUCCESSFUL!\n\n' +
+                        'Response:\n' + JSON.stringify(data, null, 2) +
+                        '\n\n🎉 ALL TESTS PASSED! You can now go to:\n' +
+                        'http://localhost:3000/admin-dashboard',
+                        'success'
+                    );
+                } else {
+                    showResult('❌ DASHBOARD STATS FAILED:\n\n' + JSON.stringify(data, null, 2), 'error');
+                }
+            } catch (error) {
+                showResult('❌ ERROR:\n\n' + error.message, 'error');
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            showResult('✅ LocalStorage cleared. You can start fresh.', 'info');
+        }
+    </script>
+</body>
+</html>
+
